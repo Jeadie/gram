@@ -6,9 +6,6 @@ import (
 )
 
 func main() {
-	c := make([]byte, 1)
-	cs := 1 // Number of characters read. Must be > 0 for initial for-loop check
-
 	// TODO: refactor EnableRawMode() into Editor struct function
 	e := ConstructEditor()
 	t, err := EnableRawMode()
@@ -19,12 +16,7 @@ func main() {
 	}
 
 	for true {
-		cs, _ = os.Stdin.Read(c)
-		if cs == 0 {
-			continue
-		}
-
-		cc := c[0]
+		cc := e.ReadChar()
 		e.RefreshScreen()
 		shouldExit := e.KeyPress(cc)
 		if shouldExit {

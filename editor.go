@@ -76,14 +76,27 @@ func (e *Editor) RefreshScreen() {
 	e.ShowCursor()
 }
 
+func (e *Editor) ReadChar() byte {
+	c := make([]byte, 1)
+	cs, _ := os.Stdin.Read(c)
+	if cs == 0 {
+		return 0x00
+	}
+	return c[0]
+}
+
 func (e *Editor) KeyPress(x byte) bool {
 	switch x {
 	case Ctrl('q'):
 		return true
+	case '\x1b':
+		x = e.HandleEscapeCode()
+		break
+
 	}
 
 	if !isControlChar(x) {
-		//fmt.Printf(string(x)) 
+		//fmt.Printf(string(x))
 		e.HandleMoveCursor(x)
 	}
 	return false
@@ -116,6 +129,32 @@ func (e *Editor) HandleMoveCursor(x byte) {
 	case x:
 		fmt.Printf(string(x))
 	}
+}
+
+func (e *Editor) HandleEscapeCode() byte {
+	a := e.ReadChar()
+	if a == '\x1b' {
+		return '\x1b'
+	}
+	b := e.ReadChar()
+	if b == '\x1b' {
+		return '\x1b'
+	}
+
+	if a == '[' {
+		// Arrow keys
+		switch b {
+		case 'A':
+			return 'w'
+		case 'B':
+			return 's'
+		case 'C':
+			return 'd'
+		case 'D':
+			return 'a'
+		}
+	}
+	return '\x1b'
 }
 
 func EnableRawMode() (unix.Termios, error) {
