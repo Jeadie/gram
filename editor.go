@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"golang.org/x/sys/unix"
 	"os"
+	"strings"
 )
 
 type Editor struct {
@@ -30,12 +31,17 @@ func (e Editor) getWindowSize() (uint, uint) {
 }
 
 func (e Editor) DrawRows() {
-	r, _ := e.GetWindowSize()
-
+	r, c := e.GetWindowSize()
 	fmt.Printf("\x1b[K") // Clear line
 
 	for i := uint(1); i < r; i++ {
-		fmt.Printf("~\r\n")
+		if i == (r / 3) {
+			welcomeMsg := "Gram editor -- version 0.0.1"
+			pad := strings.Repeat(" ", (int(c)-len(welcomeMsg))/2)
+			fmt.Printf("%sGram editor -- version 0.0.1%s", pad, pad)
+		} else {
+			fmt.Printf("~\r\n")
+		}
 	}
 	fmt.Printf("~\r")
 }
