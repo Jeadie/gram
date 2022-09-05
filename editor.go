@@ -38,6 +38,8 @@ func (e Editor) GetWindowSize() (uint, uint) {
 }
 
 // getWindowSize returns number of rows, then columns. (0, 0) if error occurs
+// TODO: Sometimes unix.IoctlGetWinsize will fail. Implement fallback
+//   https://viewsourcecode.org/snaptoken/kilo/03.rawInputAndOutput.html#window-size-the-hard-way
 func (e Editor) getWindowSize() (uint, uint) {
 	ws, err := unix.IoctlGetWinsize(int(os.Stdin.Fd()), unix.TIOCGWINSZ)
 	if err != nil {

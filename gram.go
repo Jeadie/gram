@@ -9,14 +9,13 @@ func main() {
 	c := make([]byte, 1)
 	cs := 1 // Number of characters read. Must be > 0 for initial for-loop check
 
+	// TODO: refactor EnableRawMode() into Editor struct function
 	e := ConstructEditor()
 	t, err := EnableRawMode()
-
 	e.originalTermios = &t
-	defer e.DisableRawMode()
+
 	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+		Exit(e, err)
 	}
 
 	for true {
@@ -29,9 +28,20 @@ func main() {
 		e.RefreshScreen()
 		shouldExit := e.KeyPress(cc)
 		if shouldExit {
-			return
+			Exit(e, nil)
 		}
 	}
+}
+
+func Exit(e Editor, err error) {
+	e.DisableRawMode()
+	fmt.Println("\x1b[2J")
+	fmt.Println("\x1b[H")
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+	os.Exit(0)
 }
 
 func Ctrl(b byte) byte {
