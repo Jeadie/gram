@@ -22,15 +22,15 @@ func ConstructEditor() Editor {
 	return e
 }
 
-func (e Editor) ShowCursor() {
+func (e *Editor) ShowCursor() {
 	fmt.Printf("\x1b[%d;%dH", e.cy+1, e.cx+1)
 }
 
-func (e Editor) HideCursor() {
+func (e *Editor) HideCursor() {
 	fmt.Printf("\x1b[%d;%dL", e.cy+1, e.cx+1)
 }
 
-func (e Editor) GetWindowSize() (uint, uint) {
+func (e *Editor) GetWindowSize() (uint, uint) {
 	if e.wRows != 0 && e.wCols != 0 {
 		return e.wRows, e.wCols
 	}
@@ -40,7 +40,7 @@ func (e Editor) GetWindowSize() (uint, uint) {
 // getWindowSize returns number of rows, then columns. (0, 0) if error occurs
 // TODO: Sometimes unix.IoctlGetWinsize will fail. Implement fallback
 //   https://viewsourcecode.org/snaptoken/kilo/03.rawInputAndOutput.html#window-size-the-hard-way
-func (e Editor) getWindowSize() (uint, uint) {
+func (e *Editor) getWindowSize() (uint, uint) {
 	ws, err := unix.IoctlGetWinsize(int(os.Stdin.Fd()), unix.TIOCGWINSZ)
 	if err != nil {
 		return 0, 0
@@ -50,7 +50,7 @@ func (e Editor) getWindowSize() (uint, uint) {
 	return e.wRows, e.wCols
 }
 
-func (e Editor) DrawRows() {
+func (e *Editor) DrawRows() {
 	r, c := e.GetWindowSize()
 	fmt.Printf("\x1b[K") // Clear line
 
@@ -66,7 +66,7 @@ func (e Editor) DrawRows() {
 	fmt.Printf("~\r")
 }
 
-func (e Editor) RefreshScreen() {
+func (e *Editor) RefreshScreen() {
 	fmt.Printf("\x1b[2J") // Clear the screen
 	fmt.Printf("\x1b[H")  // Reposition Cursor
 	e.HideCursor()
@@ -76,25 +76,45 @@ func (e Editor) RefreshScreen() {
 	e.ShowCursor()
 }
 
-func (e Editor) KeyPress(x byte) bool {
+func (e *Editor) KeyPress(x byte) bool {
 	switch x {
 	case Ctrl('q'):
 		return true
 	}
 
 	if !isControlChar(x) {
-		fmt.Printf(string(x))
+		//fmt.Printf(string(x)) 
+		e.HandleMoveCursor(x)
 	}
 	return false
 }
 
-func (e Editor) DisableRawMode() {
+func (e *Editor) DisableRawMode() {
 	err := unix.IoctlSetTermios(int(os.Stdin.Fd()), unix.TIOCSETA, e.originalTermios)
 	if err != nil {
 		fmt.Printf(fmt.Errorf(
 			"Error on terminal close when disabling raw mode. Error: %w\n", err,
 		).Error(),
 		)
+	}
+}
+
+func (e *Editor) HandleMoveCursor(x byte) {
+	switch x {
+	case 'a':
+		e.cx--
+		break
+	case 'd':
+		e.cx++
+		break
+	case 'w':
+		e.cy--
+		break
+	case 's':
+		e.cy++
+		break
+	case x:
+		fmt.Printf(string(x))
 	}
 }
 
