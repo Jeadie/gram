@@ -9,7 +9,7 @@ func main() {
 	c := make([]byte, 1)
 	cs := 1 // Number of characters read. Must be > 0 for initial for-loop check
 
-	e := Editor{}
+	e := ConstructEditor()
 	t, err := EnableRawMode()
 
 	e.originalTermios = &t

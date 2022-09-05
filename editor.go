@@ -10,6 +10,16 @@ import (
 type Editor struct {
 	originalTermios *unix.Termios
 	wRows, wCols    uint
+	cx, cy          uint
+}
+
+func ConstructEditor() Editor {
+	e := Editor{
+		cx: 0,
+		cy: 0,
+	}
+	e.GetWindowSize()
+	return e
 }
 
 func (e Editor) GetWindowSize() (uint, uint) {
