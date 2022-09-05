@@ -22,6 +22,14 @@ func ConstructEditor() Editor {
 	return e
 }
 
+func (e Editor) ShowCursor() {
+	fmt.Printf("\x1b[%d;%dH", e.cy+1, e.cx+1)
+}
+
+func (e Editor) HideCursor() {
+	fmt.Printf("\x1b[%d;%dL", e.cy+1, e.cx+1)
+}
+
 func (e Editor) GetWindowSize() (uint, uint) {
 	if e.wRows != 0 && e.wCols != 0 {
 		return e.wRows, e.wCols
@@ -57,14 +65,13 @@ func (e Editor) DrawRows() {
 }
 
 func (e Editor) RefreshScreen() {
-	//fmt.Printf("\x1b[2J") // Clear the screen
-	fmt.Printf("\x1b[H")    // Reposition Cursor
-	fmt.Printf("\x1b[?25l") // Turn off cursor
+	fmt.Printf("\x1b[2J") // Clear the screen
+	fmt.Printf("\x1b[H")  // Reposition Cursor
+	e.HideCursor()
 
 	e.DrawRows()
 
-	fmt.Printf("\x1b[?25h") // Turn on Cursor
-	fmt.Printf("\x1b[H")
+	e.ShowCursor()
 }
 
 func (e Editor) KeyPress(x byte) bool {
