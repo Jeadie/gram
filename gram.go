@@ -12,25 +12,35 @@ func main() {
 	var err error
 
 	t, err := EnableRawMode()
+	defer DisableRawMode(t)
 	if err != nil {
-		DisableRawMode(t)
 		os.Exit(1)
 	}
-	defer DisableRawMode(t)
 
-	for err == nil && cs > 0 {
+	for true {
 		cs, err = os.Stdin.Read(c)
+		if cs == 0 {
+			continue
+		}
 
 		if string(c[0]) == "q" {
 			return
 		}
-		fmt.Printf(string(c[0]))
+
+		if !isControlChar(c[0]) {
+			fmt.Printf(string(c[0]))
+		}
 	}
 }
 
-func DisableRawMode(t unix.Termios) error {
-	fmt.Println("DisableRawMode")
-	return unix.IoctlSetTermios(int(os.Stdin.Fd()), unix.TIOCSETA, &t)
+func DisableRawMode(t unix.Termios) {
+	err := unix.IoctlSetTermios(int(os.Stdin.Fd()), unix.TIOCSETA, &t)
+	if err != nil {
+		fmt.Printf(fmt.Errorf(
+			"Error on terminal close when disabling raw mode. Error: %w\n", err,
+		).Error(),
+		)
+	}
 }
 
 func EnableRawMode() (unix.Termios, error) {
@@ -46,17 +56,30 @@ func EnableRawMode() (unix.Termios, error) {
 		return returnT, err
 	}
 
-	termios.Iflag &^= unix.IGNBRK | unix.BRKINT | unix.PARMRK | unix.ISTRIP | unix.INLCR | unix.IGNCR | unix.ICRNL | unix.IXON
-	termios.Oflag &^= unix.OPOST
-	termios.Lflag &^= unix.ECHO | unix.ECHONL | unix.ICANON | unix.IEXTEN | unix.ISIG
+	termios.Iflag &^= unix.IGNBRK | unix.BRKINT | unix.PARMRK | unix.ISTRIP | unix.INLCR | unix.IGNCR | unix.IXON
+	termios.Iflag &^= unix.IXON  // Ctrl-S and Ctrl-Q
+	termios.Iflag &^= unix.ICRNL // Ctrl-M
+
+	termios.Oflag &^= unix.OPOST // #Output Processing
+
+	termios.Lflag &^= unix.ECHO | unix.ECHONL // Echo
+	termios.Lflag &^= unix.ICANON             // Canonical Mode
+	termios.Lflag &^= unix.ISIG               // Ctrl-C and Ctrl-Z
+	termios.Lflag &^= unix.IEXTEN             // ctrl-V, ctrl-O (on macOS
+
 	termios.Cflag &^= unix.CSIZE | unix.PARENB
 	termios.Cflag |= unix.CS8
-	termios.Cc[unix.VMIN] = 1
-	termios.Cc[unix.VTIME] = 0
+
+	termios.Cc[unix.VMIN] = 0  // Number of bytes to let Read() return
+	termios.Cc[unix.VTIME] = 1 // Maximum wait time for Read(). Measured in tenths of a second
 
 	if err := unix.IoctlSetTermios(fd, ioctlWriteTermios, termios); err != nil {
 		return returnT, err
 	}
 
 	return returnT, err
+}
+
+func isControlChar(x byte) bool {
+	return x <= 31 || x == 127
 }
