@@ -17,6 +17,8 @@ func main() {
 		os.Exit(1)
 	}
 
+	e := Editor{originalTermios: t}
+
 	for true {
 		cs, _ = os.Stdin.Read(c)
 		if cs == 0 {
@@ -24,38 +26,12 @@ func main() {
 		}
 
 		cc := c[0]
-		EditorRefreshScreen()
-		shouldExit := EditorKeyPress(cc)
+		e.RefreshScreen()
+		shouldExit := e.KeyPress(cc)
 		if shouldExit {
 			return
 		}
 	}
-}
-
-func EditorDrawRows() {
-	for i := 0; i < 24; i++ {
-		fmt.Println("~\r")
-	}
-}
-
-func EditorRefreshScreen() {
-	fmt.Printf("\x1b[2J") // Clear the screen
-	fmt.Printf("\x1b[H")  // Reposition Cursor
-
-	EditorDrawRows()
-	fmt.Printf("\x1b[H")
-}
-
-func EditorKeyPress(x byte) bool {
-	switch x {
-	case Ctrl('q'):
-		return true
-	}
-
-	if !isControlChar(x) {
-		fmt.Printf(string(x))
-	}
-	return false
 }
 
 func Ctrl(b byte) byte {
