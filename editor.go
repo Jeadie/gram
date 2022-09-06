@@ -27,13 +27,15 @@ type Editor struct {
 	wRows, wCols    uint
 	cx, cy          uint
 	rows            []string
+	rowOffset       uint
 }
 
 func ConstructEditor() Editor {
 	e := Editor{
-		cx:   0,
-		cy:   0,
-		rows: []string{},
+		cx:        0,
+		cy:        0,
+		rowOffset: 0,
+		rows:      []string{},
 	}
 	e.GetWindowSize()
 	return e
@@ -51,11 +53,11 @@ func (e *Editor) Open(filename string) error {
 }
 
 func (e *Editor) ShowCursor() {
-	fmt.Printf("\x1b[%d;%dH", e.cy+1, e.cx+1)
+	fmt.Printf("\x1b[%d;%dH", (e.cy-e.rowOffset)+1, e.cx+1)
 }
 
 func (e *Editor) HideCursor() {
-	fmt.Printf("\x1b[%d;%dL", e.cy+1, e.cx+1)
+	fmt.Printf("\x1b[%d;%dL", (e.cy-e.rowOffset)+1, e.cx+1)
 }
 
 func (e *Editor) GetWindowSize() (uint, uint) {
@@ -87,7 +89,7 @@ func (e *Editor) DrawRows() {
 		nRows = e.wRows
 	}
 	for i := uint(0); i < nRows; i++ {
-		fmt.Printf("%s\r\n", e.rows[i])
+		fmt.Printf("%s\r\n", e.rows[i+e.rowOffset])
 	}
 	e.DrawEmptyRows(r - nRows)
 }
@@ -100,6 +102,7 @@ func (e *Editor) DrawEmptyRows(r uint) {
 }
 
 func (e *Editor) RefreshScreen() {
+	e.SetScroll()
 	fmt.Printf("\x1b[2J") // Clear the screen
 	e.HideCursor()
 	fmt.Printf("\x1b[H") // Reposition Cursor
@@ -164,7 +167,7 @@ func (e *Editor) HandleMoveCursor(x Cmd) {
 		}
 		break
 	case DOWN:
-		if (e.cy + 1) < e.wRows {
+		if e.cy < uint(len(e.rows)) {
 			e.cy++
 		}
 		break
@@ -245,6 +248,14 @@ func (e *Editor) HandleEscapeCode() Cmd {
 		}
 	}
 	return '\x1b'
+}
+
+func (e *Editor) SetScroll() {
+	if e.cy < e.rowOffset {
+		e.rowOffset = e.cy
+	} else if e.cy > (e.rowOffset + e.wRows) {
+		e.rowOffset = e.cy - e.wRows + 1
+	}
 }
 
 func EnableRawMode() (unix.Termios, error) {
