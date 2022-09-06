@@ -16,6 +16,9 @@ const (
 	RIGHT         = 1003
 	PAGE_UP       = 1004
 	PAGE_DOWN     = 1005
+	HOME_KEY      = 1006
+	END_KEY       = 1007
+	DELETE        = 1008
 )
 
 type Editor struct {
@@ -150,10 +153,18 @@ func (e *Editor) HandleMoveCursor(x Cmd) {
 		for i := uint(0); i < e.wRows; i++ {
 			e.HandleMoveCursor(UP)
 		}
+		break
 	case PAGE_DOWN:
 		for i := uint(0); i < e.wRows; i++ {
 			e.HandleMoveCursor(DOWN)
 		}
+		break
+	case HOME_KEY:
+		e.cx = 0
+		break
+	case END_KEY:
+		e.cx = e.wCols - 1
+		break
 	}
 }
 
@@ -176,10 +187,20 @@ func (e *Editor) HandleEscapeCode() Cmd {
 			}
 			if c == '~' {
 				switch c {
+				case '1':
+					return HOME_KEY
+				case '3':
+					return DELETE
+				case '4':
+					return END_KEY
 				case '5':
 					return PAGE_UP
 				case '6':
 					return PAGE_DOWN
+				case '7':
+					return HOME_KEY
+				case '8':
+					return END_KEY
 				}
 			}
 		}
@@ -194,6 +215,14 @@ func (e *Editor) HandleEscapeCode() Cmd {
 			return RIGHT
 		case 'D':
 			return LEFT
+		}
+	}
+	if a == 'O' {
+		switch b {
+		case 'H':
+			return HOME_KEY
+		case 'F':
+			return END_KEY
 		}
 	}
 	return '\x1b'
