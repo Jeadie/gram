@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"golang.org/x/sys/unix"
 	"os"
-	"strings"
 )
 
 type Cmd rune
@@ -25,12 +24,15 @@ type Editor struct {
 	originalTermios *unix.Termios
 	wRows, wCols    uint
 	cx, cy          uint
+	cRow            []byte
+	numRows         uint
 }
 
 func ConstructEditor() Editor {
 	e := Editor{
-		cx: 0,
-		cy: 0,
+		cx:      0,
+		cy:      0,
+		numRows: 0,
 	}
 	e.GetWindowSize()
 	return e
@@ -65,17 +67,18 @@ func (e *Editor) getWindowSize() (uint, uint) {
 }
 
 func (e *Editor) DrawRows() {
-	r, c := e.GetWindowSize()
+	r, _ := e.GetWindowSize()
 	fmt.Printf("\x1b[K") // Clear line
 
+	for i := uint(0); i < e.numRows; i++ {
+		fmt.Printf(string(e.cRow))
+	}
+	e.DrawEmptyRows(r - e.numRows)
+}
+
+func (e *Editor) DrawEmptyRows(r uint) {
 	for i := uint(1); i < r; i++ {
-		if i == (r / 3) {
-			welcomeMsg := "Gram editor -- version 0.0.1"
-			pad := strings.Repeat(" ", (int(c)-len(welcomeMsg))/2)
-			fmt.Printf("%sGram editor -- version 0.0.1%s", pad, pad)
-		} else {
-			fmt.Printf("~\r\n")
-		}
+		fmt.Printf("~\r\n")
 	}
 	fmt.Printf("~\r")
 }
@@ -226,6 +229,11 @@ func (e *Editor) HandleEscapeCode() Cmd {
 		}
 	}
 	return '\x1b'
+}
+
+func (e *Editor) Open() {
+	e.cRow = []byte("Hello World\000")
+	e.numRows = 1
 }
 
 func EnableRawMode() (unix.Termios, error) {

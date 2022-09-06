@@ -8,6 +8,7 @@ import (
 func main() {
 	// TODO: refactor EnableRawMode() into Editor struct function
 	e := ConstructEditor()
+	e.Open()
 	t, err := EnableRawMode()
 	e.originalTermios = &t
 
