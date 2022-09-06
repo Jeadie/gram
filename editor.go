@@ -7,6 +7,15 @@ import (
 	"strings"
 )
 
+type Cmd rune
+
+const (
+	UP    Cmd = 1000
+	DOWN      = 1001
+	LEFT      = 1002
+	RIGHT     = 1003
+)
+
 type Editor struct {
 	originalTermios *unix.Termios
 	wRows, wCols    uint
@@ -68,8 +77,8 @@ func (e *Editor) DrawRows() {
 
 func (e *Editor) RefreshScreen() {
 	fmt.Printf("\x1b[2J") // Clear the screen
-	fmt.Printf("\x1b[H")  // Reposition Cursor
 	e.HideCursor()
+	fmt.Printf("\x1b[H") // Reposition Cursor
 
 	e.DrawRows()
 
@@ -86,18 +95,19 @@ func (e *Editor) ReadChar() byte {
 }
 
 func (e *Editor) KeyPress(x byte) bool {
+	var c Cmd = 0x00
 	switch x {
 	case Ctrl('q'):
 		return true
 	case '\x1b':
-		x = e.HandleEscapeCode()
+		c = e.HandleEscapeCode()
 		break
 
 	}
 
+	e.HandleMoveCursor(c)
 	if !isControlChar(x) {
-		//fmt.Printf(string(x))
-		e.HandleMoveCursor(x)
+		fmt.Printf(string(x))
 	}
 	return false
 }
@@ -112,26 +122,24 @@ func (e *Editor) DisableRawMode() {
 	}
 }
 
-func (e *Editor) HandleMoveCursor(x byte) {
+func (e *Editor) HandleMoveCursor(x Cmd) {
 	switch x {
-	case 'a':
+	case LEFT:
 		e.cx--
 		break
-	case 'd':
+	case RIGHT:
 		e.cx++
 		break
-	case 'w':
+	case UP:
 		e.cy--
 		break
-	case 's':
+	case DOWN:
 		e.cy++
 		break
-	case x:
-		fmt.Printf(string(x))
 	}
 }
 
-func (e *Editor) HandleEscapeCode() byte {
+func (e *Editor) HandleEscapeCode() Cmd {
 	a := e.ReadChar()
 	if a == '\x1b' {
 		return '\x1b'
@@ -145,13 +153,13 @@ func (e *Editor) HandleEscapeCode() byte {
 		// Arrow keys
 		switch b {
 		case 'A':
-			return 'w'
+			return UP
 		case 'B':
-			return 's'
+			return DOWN
 		case 'C':
-			return 'd'
+			return RIGHT
 		case 'D':
-			return 'a'
+			return LEFT
 		}
 	}
 	return '\x1b'
