@@ -23,11 +23,11 @@ const (
 )
 
 type Editor struct {
-	originalTermios *unix.Termios
-	wRows, wCols    uint
-	cx, cy          uint
-	rows            []string
-	rowOffset       uint
+	originalTermios      *unix.Termios
+	wRows, wCols         uint     // size of Editor
+	cx, cy               uint     // Position in file of cursor
+	rows                 []string // Rows in file
+	rowOffset, colOffset uint     // Position in file of top left corner of editor
 }
 
 func ConstructEditor() Editor {
@@ -35,6 +35,7 @@ func ConstructEditor() Editor {
 		cx:        0,
 		cy:        0,
 		rowOffset: 0,
+		colOffset: 0,
 		rows:      []string{},
 	}
 	e.GetWindowSize()
@@ -53,11 +54,11 @@ func (e *Editor) Open(filename string) error {
 }
 
 func (e *Editor) ShowCursor() {
-	fmt.Printf("\x1b[%d;%dH", (e.cy-e.rowOffset)+1, e.cx+1)
+	fmt.Printf("\x1b[%d;%dH", (e.cy-e.rowOffset)+1, (e.cx-e.colOffset)+1)
 }
 
 func (e *Editor) HideCursor() {
-	fmt.Printf("\x1b[%d;%dL", (e.cy-e.rowOffset)+1, e.cx+1)
+	fmt.Printf("\x1b[%d;%dL", (e.cy-e.rowOffset)+1, (e.cx-e.colOffset)+1)
 }
 
 func (e *Editor) GetWindowSize() (uint, uint) {
@@ -89,9 +90,19 @@ func (e *Editor) DrawRows() {
 		nRows = e.wRows
 	}
 	for i := uint(0); i < nRows; i++ {
-		fmt.Printf("%s\r\n", e.rows[i+e.rowOffset])
+		fmt.Printf("%s\r\n", e.DrawRow(e.rows[i+e.rowOffset]))
 	}
 	e.DrawEmptyRows(r - nRows)
+}
+func (e *Editor) DrawRow(l string) string {
+	lLen := uint(len(l)) - e.colOffset
+	if e.colOffset > uint(len(l)) {
+		return ""
+	} else if lLen > e.wCols {
+		return l[e.colOffset : e.colOffset+e.wCols]
+	} else {
+		return l[e.colOffset:]
+	}
 }
 
 func (e *Editor) DrawEmptyRows(r uint) {
@@ -157,12 +168,10 @@ func (e *Editor) HandleMoveCursor(x Cmd) {
 		}
 		break
 	case RIGHT:
-		if (e.cx + 1) < e.wCols {
-			e.cx++
-		}
+		e.cx++ // Allow for horizontal scroll
 		break
 	case UP:
-		if e.cy != 0 {
+		if e.cy > 0 {
 			e.cy--
 		}
 		break
@@ -255,6 +264,12 @@ func (e *Editor) SetScroll() {
 		e.rowOffset = e.cy
 	} else if e.cy > (e.rowOffset + e.wRows) {
 		e.rowOffset = e.cy - e.wRows + 1
+	}
+
+	if e.cx < e.colOffset {
+		e.colOffset = e.cx
+	} else if e.cx > (e.colOffset + e.wCols) {
+		e.colOffset = e.cx - e.wCols + 1
 	}
 }
 
