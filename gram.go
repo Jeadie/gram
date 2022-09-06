@@ -8,7 +8,7 @@ import (
 func main() {
 	// TODO: refactor EnableRawMode() into Editor struct function
 	e := ConstructEditor()
-	err := e.Open(os.Args[1])
+	err := e.Open("editor.go")
 	t, err := EnableRawMode()
 	e.originalTermios = &t
 
@@ -16,14 +16,10 @@ func main() {
 		Exit(e, err)
 	}
 
-	for true {
-		cc := e.ReadChar()
+	for !e.KeyPress() {
 		e.RefreshScreen()
-		shouldExit := e.KeyPress(cc)
-		if shouldExit {
-			Exit(e, nil)
-		}
 	}
+	Exit(e, nil)
 }
 
 func Exit(e Editor, err error) {
@@ -35,12 +31,4 @@ func Exit(e Editor, err error) {
 		os.Exit(1)
 	}
 	os.Exit(0)
-}
-
-func Ctrl(b byte) byte {
-	return b & 0x1f
-}
-
-func isControlChar(x byte) bool {
-	return x <= 31 || x == 127
 }

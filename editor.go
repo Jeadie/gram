@@ -132,7 +132,8 @@ func (e *Editor) ReadChar() byte {
 	return c[0]
 }
 
-func (e *Editor) KeyPress(x byte) bool {
+func (e *Editor) KeyPress() bool {
+	x := e.ReadChar()
 	var c Cmd = 0x00
 	switch x {
 	case Ctrl('q'):
@@ -199,6 +200,20 @@ func (e *Editor) HandleMoveCursor(x Cmd) {
 	}
 }
 
+func (e *Editor) SetScroll() {
+	if e.cy < e.rowOffset {
+		e.rowOffset = e.cy
+	} else if e.cy > (e.rowOffset + e.wRows) {
+		e.rowOffset = e.cy - e.wRows + 1
+	}
+
+	if e.cx < e.colOffset {
+		e.colOffset = e.cx
+	} else if e.cx > (e.colOffset + e.wCols) {
+		e.colOffset = e.cx - e.wCols + 1
+	}
+}
+
 func (e *Editor) HandleEscapeCode() Cmd {
 	a := e.ReadChar()
 	if a == '\x1b' {
@@ -259,18 +274,12 @@ func (e *Editor) HandleEscapeCode() Cmd {
 	return '\x1b'
 }
 
-func (e *Editor) SetScroll() {
-	if e.cy < e.rowOffset {
-		e.rowOffset = e.cy
-	} else if e.cy > (e.rowOffset + e.wRows) {
-		e.rowOffset = e.cy - e.wRows + 1
-	}
+func Ctrl(b byte) byte {
+	return b & 0x1f
+}
 
-	if e.cx < e.colOffset {
-		e.colOffset = e.cx
-	} else if e.cx > (e.colOffset + e.wCols) {
-		e.colOffset = e.cx - e.wCols + 1
-	}
+func isControlChar(x byte) bool {
+	return x <= 31 || x == 127
 }
 
 func EnableRawMode() (unix.Termios, error) {
