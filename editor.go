@@ -10,10 +10,12 @@ import (
 type Cmd rune
 
 const (
-	UP    Cmd = 1000
-	DOWN      = 1001
-	LEFT      = 1002
-	RIGHT     = 1003
+	UP        Cmd = 1000
+	DOWN          = 1001
+	LEFT          = 1002
+	RIGHT         = 1003
+	PAGE_UP       = 1004
+	PAGE_DOWN     = 1005
 )
 
 type Editor struct {
@@ -144,6 +146,14 @@ func (e *Editor) HandleMoveCursor(x Cmd) {
 			e.cy++
 		}
 		break
+	case PAGE_UP:
+		for i := uint(0); i < e.wRows; i++ {
+			e.HandleMoveCursor(UP)
+		}
+	case PAGE_DOWN:
+		for i := uint(0); i < e.wRows; i++ {
+			e.HandleMoveCursor(DOWN)
+		}
 	}
 }
 
@@ -158,6 +168,22 @@ func (e *Editor) HandleEscapeCode() Cmd {
 	}
 
 	if a == '[' {
+		// Page up/down
+		if b >= '0' && b <= '9' {
+			c := e.ReadChar()
+			if c == '\x1b' {
+				return '\x1b'
+			}
+			if c == '~' {
+				switch c {
+				case '5':
+					return PAGE_UP
+				case '6':
+					return PAGE_DOWN
+				}
+			}
+		}
+
 		// Arrow keys
 		switch b {
 		case 'A':
