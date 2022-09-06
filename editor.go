@@ -125,16 +125,24 @@ func (e *Editor) DisableRawMode() {
 func (e *Editor) HandleMoveCursor(x Cmd) {
 	switch x {
 	case LEFT:
-		e.cx--
+		if e.cx != 0 {
+			e.cx--
+		}
 		break
 	case RIGHT:
-		e.cx++
+		if (e.cx + 1) < e.wCols {
+			e.cx++
+		}
 		break
 	case UP:
-		e.cy--
+		if e.cy != 0 {
+			e.cy--
+		}
 		break
 	case DOWN:
-		e.cy++
+		if (e.cy + 1) < e.wRows {
+			e.cy++
+		}
 		break
 	}
 }
