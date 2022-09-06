@@ -3,7 +3,9 @@ package main
 import (
 	"fmt"
 	"golang.org/x/sys/unix"
+	"io/ioutil"
 	"os"
+	"strings"
 )
 
 type Cmd rune
@@ -24,18 +26,28 @@ type Editor struct {
 	originalTermios *unix.Termios
 	wRows, wCols    uint
 	cx, cy          uint
-	cRow            []byte
-	numRows         uint
+	rows            []string
 }
 
 func ConstructEditor() Editor {
 	e := Editor{
-		cx:      0,
-		cy:      0,
-		numRows: 0,
+		cx:   0,
+		cy:   0,
+		rows: []string{},
 	}
 	e.GetWindowSize()
 	return e
+}
+
+func (e *Editor) Open(filename string) error {
+	raw, err := ioutil.ReadFile(filename)
+	if err != nil {
+		return err
+	}
+	file := strings.ReplaceAll(string(raw), "\r", "\n")
+
+	e.rows = strings.Split(file, "\n")
+	return nil
 }
 
 func (e *Editor) ShowCursor() {
@@ -70,10 +82,14 @@ func (e *Editor) DrawRows() {
 	r, _ := e.GetWindowSize()
 	fmt.Printf("\x1b[K") // Clear line
 
-	for i := uint(0); i < e.numRows; i++ {
-		fmt.Printf(string(e.cRow))
+	nRows := uint(len(e.rows))
+	if nRows > e.wRows {
+		nRows = e.wRows
 	}
-	e.DrawEmptyRows(r - e.numRows)
+	for i := uint(0); i < nRows; i++ {
+		fmt.Printf("%s\r\n", e.rows[i])
+	}
+	e.DrawEmptyRows(r - nRows)
 }
 
 func (e *Editor) DrawEmptyRows(r uint) {
@@ -229,11 +245,6 @@ func (e *Editor) HandleEscapeCode() Cmd {
 		}
 	}
 	return '\x1b'
-}
-
-func (e *Editor) Open() {
-	e.cRow = []byte("Hello World\000")
-	e.numRows = 1
 }
 
 func EnableRawMode() (unix.Termios, error) {
