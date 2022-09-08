@@ -280,13 +280,14 @@ func (e *Editor) HandleEscapeCode() Cmd {
 
 	if a == '[' {
 		// Page up/down
-		if b >= '0' && b <= '9' {
+		if b >= '0' && (b <= '9' || b >= 'A') {
 			c := e.ReadChar()
 			if c == '\x1b' {
 				return '\x1b'
 			}
-			if c == '~' {
-				switch c {
+
+			if c == 0x7E {
+				switch b {
 				case '1':
 					return HOME_KEY
 				case '3':
