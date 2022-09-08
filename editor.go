@@ -24,10 +24,10 @@ const (
 
 type Editor struct {
 	originalTermios      *unix.Termios
-	wRows, wCols         uint     // size of Editor
-	cx, cy               uint     // Position in file of cursor
-	rows                 []string // Rows in file
-	rowOffset, colOffset uint     // Position in file of top left corner of editor
+	wRows, wCols         uint  // size of Editor
+	cx, cy               uint  // Position in file of cursor
+	rows                 []Row // Rows in file
+	rowOffset, colOffset uint  // Position in file of top left corner of editor
 }
 
 func ConstructEditor() Editor {
@@ -36,7 +36,7 @@ func ConstructEditor() Editor {
 		cy:        0,
 		rowOffset: 0,
 		colOffset: 0,
-		rows:      []string{},
+		rows:      []Row{},
 	}
 	e.GetWindowSize()
 	return e
@@ -48,10 +48,11 @@ func (e *Editor) Open(filename string) error {
 		return err
 	}
 	file := strings.ReplaceAll(string(raw), "\r", "\n")
+	e.rows = make([]Row, len(file))
 
-	// TODO: Fix when we handle tabs correctly
-	file = strings.ReplaceAll(file, "\t", "    ")
-	e.rows = strings.Split(file, "\n")
+	for i, s := range strings.Split(file, "\n") {
+		e.rows[i] = ConstructRow(s)
+	}
 	return nil
 }
 
@@ -96,7 +97,8 @@ func (e *Editor) DrawRows() {
 	}
 	e.DrawEmptyRows(r - nRows)
 }
-func (e *Editor) DrawRow(l string) string {
+func (e *Editor) DrawRow(r Row) string {
+	l := r.Render()
 	lLen := uint(len(l)) - e.colOffset
 	if e.colOffset > uint(len(l)) {
 		return ""
@@ -164,7 +166,7 @@ func (e *Editor) DisableRawMode() {
 }
 
 func (e *Editor) GetRowLength() uint {
-	return uint(len(e.rows[e.cy]))
+	return e.rows[e.cy].RenderLen()
 }
 
 func (e *Editor) HandleMoveCursor(x Cmd) {
