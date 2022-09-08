@@ -88,7 +88,8 @@ func (e *Editor) DrawRows() {
 	r, _ := e.GetWindowSize()
 	fmt.Printf("\x1b[K") // Clear line
 
-	nRows := uint(len(e.rows))
+	// Leave room for status bar
+	nRows := r - 1
 	if nRows > e.wRows {
 		nRows = e.wRows - 1
 	}
@@ -96,6 +97,7 @@ func (e *Editor) DrawRows() {
 		fmt.Printf("%s\r\n", e.DrawRow(e.rows[i+e.rowOffset]))
 	}
 	e.DrawEmptyRows(r - nRows)
+	e.DrawStatusBar()
 }
 func (e *Editor) DrawRow(r Row) string {
 	l := r.Render()
@@ -216,7 +218,6 @@ func (e *Editor) HandleMoveCursor(x Cmd) {
 		e.cx = 0
 		break
 	case END_KEY:
-		e.cx = e.wCols - 1
 		break
 	}
 
@@ -300,6 +301,10 @@ func (e *Editor) HandleEscapeCode() Cmd {
 		}
 	}
 	return '\x1b'
+}
+
+func (e *Editor) DrawStatusBar() {
+	fmt.Printf("STATUS BAR -- (%d, %d)", e.cx, e.cy)
 }
 
 func Ctrl(b byte) byte {
