@@ -161,13 +161,13 @@ func (e *Editor) KeyPress() bool {
 		return true
 	case '\x1b':
 		c = e.HandleEscapeCode()
+		e.HandleMoveCursor(c)
 		break
 
 	}
 
-	e.HandleMoveCursor(c)
 	if !isControlChar(x) {
-		fmt.Printf(string(x))
+		e.rows[e.cy].SetCharAt(e.cx, x)
 	}
 	return false
 }
