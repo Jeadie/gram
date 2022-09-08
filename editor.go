@@ -209,9 +209,7 @@ func (e *Editor) HandleMoveCursor(x Cmd) {
 		}
 		break
 	case DOWN:
-		if e.cy < uint(len(e.rows)) {
-			e.cy++
-		}
+		e.cy++
 		break
 	case PAGE_UP:
 		for i := uint(0); i < e.wRows; i++ {
@@ -239,6 +237,10 @@ func (e *Editor) HandleMoveCursor(x Cmd) {
 		e.cx = 0
 	} else if e.cx >= rowL {
 		e.cx = rowL - 1
+	}
+
+	if e.cy >= uint(len(e.rows)) {
+		e.cy = uint(len(e.rows)) - 1
 	}
 }
 
