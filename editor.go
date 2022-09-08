@@ -28,15 +28,20 @@ type Editor struct {
 	cx, cy               uint  // Position in file of cursor
 	rows                 []Row // Rows in file
 	rowOffset, colOffset uint  // Position in file of top left corner of editor
+
+	previousChar [5]byte
+	pCharI       int
 }
 
 func ConstructEditor() Editor {
 	e := Editor{
-		cx:        0,
-		cy:        0,
-		rowOffset: 0,
-		colOffset: 0,
-		rows:      []Row{},
+		cx:           0,
+		cy:           0,
+		rowOffset:    0,
+		colOffset:    0,
+		rows:         []Row{},
+		previousChar: [5]byte{0x00, 0x00, 0x00, 0x00, 0x00},
+		pCharI:       0,
 	}
 	e.GetWindowSize()
 	return e
@@ -135,6 +140,10 @@ func (e *Editor) ReadChar() byte {
 	if cs == 0 {
 		return 0x00
 	}
+
+	e.previousChar[e.pCharI] = c[0]
+	e.pCharI = (e.pCharI + 1) % 5
+
 	return c[0]
 }
 
@@ -218,6 +227,10 @@ func (e *Editor) HandleMoveCursor(x Cmd) {
 		e.cx = 0
 		break
 	case END_KEY:
+		//e.cx = e.GetRowLength() - 1
+		//if e.cx > e.wCols {
+		//	e.colOffset = e.cx - e.wCols
+		//}
 		break
 	}
 
@@ -303,8 +316,17 @@ func (e *Editor) HandleEscapeCode() Cmd {
 	return '\x1b'
 }
 
+func (e *Editor) GetCharHistory() [5]byte {
+	r := [5]byte{0x00, 0x00, 0x00, 0x00, 0x00}
+
+	for i := 0; i < 5; i++ {
+		r[i] = e.previousChar[(e.pCharI+(5-i-1))%5]
+	}
+	return r
+}
+
 func (e *Editor) DrawStatusBar() {
-	fmt.Printf("STATUS BAR -- (%d, %d)", e.cx, e.cy)
+	fmt.Printf("STATUS BAR -- (%d, %d) %v ", e.cx, e.cy, e.GetCharHistory())
 }
 
 func Ctrl(b byte) byte {
