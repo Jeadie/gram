@@ -6,9 +6,10 @@ import (
 )
 
 func main() {
-	// TODO: refactor EnableRawMode() into Editor struct function
 	e := ConstructEditor()
 	err := e.Open("editor.go")
+
+	// TODO: refactor EnableRawMode() into Editor struct function
 	t, err := EnableRawMode()
 	e.originalTermios = &t
 

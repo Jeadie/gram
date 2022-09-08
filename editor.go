@@ -49,6 +49,8 @@ func (e *Editor) Open(filename string) error {
 	}
 	file := strings.ReplaceAll(string(raw), "\r", "\n")
 
+	// TODO: Fix when we handle tabs correctly
+	file = strings.ReplaceAll(file, "\t", "    ")
 	e.rows = strings.Split(file, "\n")
 	return nil
 }
@@ -87,7 +89,7 @@ func (e *Editor) DrawRows() {
 
 	nRows := uint(len(e.rows))
 	if nRows > e.wRows {
-		nRows = e.wRows
+		nRows = e.wRows - 1
 	}
 	for i := uint(0); i < nRows; i++ {
 		fmt.Printf("%s\r\n", e.DrawRow(e.rows[i+e.rowOffset]))
@@ -197,6 +199,13 @@ func (e *Editor) HandleMoveCursor(x Cmd) {
 	case END_KEY:
 		e.cx = e.wCols - 1
 		break
+	}
+
+	rowL := uint(len(e.rows[e.cy]))
+	if rowL == 0 {
+		e.cx = 0
+	} else if e.cx >= rowL {
+		e.cx = rowL - 1
 	}
 }
 
