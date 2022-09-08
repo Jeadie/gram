@@ -227,10 +227,10 @@ func (e *Editor) HandleMoveCursor(x Cmd) {
 		e.cx = 0
 		break
 	case END_KEY:
-		//e.cx = e.GetRowLength() - 1
-		//if e.cx > e.wCols {
-		//	e.colOffset = e.cx - e.wCols
-		//}
+		e.cx = e.GetRowLength() - 1
+		if e.cx > e.wCols {
+			e.colOffset = e.cx - e.wCols
+		}
 		break
 	}
 
@@ -303,6 +303,10 @@ func (e *Editor) HandleEscapeCode() Cmd {
 			return RIGHT
 		case 'D':
 			return LEFT
+		case 'F':
+			return END_KEY
+		case 'H':
+			return HOME_KEY
 		}
 	}
 	if a == 'O' {
