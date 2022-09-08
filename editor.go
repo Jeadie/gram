@@ -280,7 +280,7 @@ func (e *Editor) HandleEscapeCode() Cmd {
 
 	if a == '[' {
 		// Page up/down
-		if b >= '0' && (b <= '9' || b >= 'A') {
+		if b >= '0' && b <= '9' {
 			c := e.ReadChar()
 			if c == '\x1b' {
 				return '\x1b'
