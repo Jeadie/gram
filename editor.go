@@ -10,6 +10,8 @@ import (
 
 type Cmd rune
 
+const STATUS_BAR = 1
+
 const (
 	UP        Cmd = 1000
 	DOWN          = 1001
@@ -39,6 +41,8 @@ func ConstructEditor() Editor {
 		cy:           0,
 		rowOffset:    0,
 		colOffset:    0,
+		wRows:        0,
+		wCols:        0,
 		rows:         []Row{},
 		previousChar: [5]byte{0x00, 0x00, 0x00, 0x00, 0x00},
 		pCharI:       0,
@@ -90,14 +94,16 @@ func (e *Editor) getWindowSize() (uint, uint) {
 }
 
 func (e *Editor) DrawRows() {
-	r, _ := e.GetWindowSize()
 	fmt.Printf("\x1b[K") // Clear line
 
+	r := e.GetEditorRows()
+
 	// Leave room for status bar
-	nRows := r - 1
+	nRows := e.GetDocumentRows()
 	if nRows > e.wRows {
-		nRows = e.wRows - 1
+		nRows = e.GetEditorRows()
 	}
+
 	for i := uint(0); i < nRows; i++ {
 		fmt.Printf("%s\r\n", e.DrawRow(e.rows[i+e.rowOffset]))
 	}
@@ -195,7 +201,7 @@ func (e *Editor) HandleMoveCursor(x Cmd) {
 	case RIGHT:
 		// Move right at EOL, go to start of next line.
 		if e.cx+1 >= e.GetRowLength() {
-			if e.cy != uint(len(e.rows)) {
+			if e.cy < e.GetDocumentRows() {
 				e.cy++
 				e.cx = 0
 			}
@@ -238,22 +244,26 @@ func (e *Editor) HandleMoveCursor(x Cmd) {
 	} else if e.cx >= rowL {
 		e.cx = rowL - 1
 	}
+}
 
-	if e.cy >= uint(len(e.rows)) {
-		e.cy = uint(len(e.rows)) - 1
-	}
+func (e *Editor) GetEditorRows() uint {
+	return uint(e.wRows) - STATUS_BAR
+}
+
+func (e *Editor) GetDocumentRows() uint {
+	return uint(len(e.rows))
 }
 
 func (e *Editor) SetScroll() {
 	if e.cy < e.rowOffset {
 		e.rowOffset = e.cy
-	} else if e.cy > (e.rowOffset + e.wRows) {
-		e.rowOffset = e.cy - e.wRows + 1
+	} else if e.cy >= (e.rowOffset + e.GetEditorRows()) {
+		e.rowOffset = e.cy - e.GetEditorRows() + 1
 	}
 
 	if e.cx < e.colOffset {
 		e.colOffset = e.cx
-	} else if e.cx > (e.colOffset + e.wCols) {
+	} else if e.cx >= (e.colOffset + e.wCols) {
 		e.colOffset = e.cx - e.wCols + 1
 	}
 }
@@ -332,7 +342,8 @@ func (e *Editor) GetCharHistory() [5]byte {
 }
 
 func (e *Editor) DrawStatusBar() {
-	fmt.Printf("STATUS BAR -- (%d, %d) %v ", e.cx, e.cy, e.GetCharHistory())
+	y, x := e.GetWindowSize()
+	fmt.Printf("STATUS BAR -- (%d, %d) of (%d, %d) %v ", e.cx, e.cy, x, y, e.GetCharHistory())
 }
 
 func Ctrl(b byte) byte {
