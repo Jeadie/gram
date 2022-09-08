@@ -163,15 +163,32 @@ func (e *Editor) DisableRawMode() {
 	}
 }
 
+func (e *Editor) GetRowLength() uint {
+	return uint(len(e.rows[e.cy]))
+}
+
 func (e *Editor) HandleMoveCursor(x Cmd) {
 	switch x {
 	case LEFT:
 		if e.cx != 0 {
 			e.cx--
+
+			// Move left at start of line, go to end of previous line
+		} else if e.cy != 0 {
+			e.cy--
+			e.cx = e.GetRowLength()
 		}
 		break
 	case RIGHT:
-		e.cx++ // Allow for horizontal scroll
+		// Move right at EOL, go to start of next line.
+		if e.cx+1 >= e.GetRowLength() {
+			if e.cy != uint(len(e.rows)) {
+				e.cy++
+				e.cx = 0
+			}
+		} else {
+			e.cx++ // Allow for horizontal scroll
+		}
 		break
 	case UP:
 		if e.cy > 0 {
@@ -201,7 +218,7 @@ func (e *Editor) HandleMoveCursor(x Cmd) {
 		break
 	}
 
-	rowL := uint(len(e.rows[e.cy]))
+	rowL := e.GetRowLength()
 	if rowL == 0 {
 		e.cx = 0
 	} else if e.cx >= rowL {
