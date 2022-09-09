@@ -19,18 +19,36 @@ func (r Row) Render() string {
 	return strings.ReplaceAll(srcStr, "\t", "    ")
 }
 
-func (r *Row) SetCharAt(renderI uint, b byte) {
-
-	// Convert render index to src index.
-	j := 0
-	for i := uint(0); i < renderI; i++ {
-		j++
+func (r *Row) getSrcIndex(renderI uint) int {
+	j := uint(0)
+	for i := 0; i < len(r.src); i++ {
+		if j >= renderI {
+			return i
+		}
 		if r.src[i] == '\t' {
-			i += 4
+			j += 4
 		} else {
-			i++
+			j++
 		}
 	}
+	return -1
+}
+
+func (r *Row) AddCharAt(renderI uint, b byte) {
+	j := r.getSrcIndex(renderI)
+
+	x := r.src[:j]
+	y := r.src[j:]
+	z := strings.Join([]string{string(x), string(y)}, string(b))
+	r.src = []byte(z)
+}
+
+func (r *Row) GetCharAt(renderI uint) byte {
+	return r.src[r.getSrcIndex(renderI)]
+}
+
+func (r *Row) SetCharAt(renderI uint, b byte) {
+	j := r.getSrcIndex(renderI)
 	r.src[j] = b
 }
 
