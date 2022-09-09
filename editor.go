@@ -58,7 +58,7 @@ func ConstructEditor() Editor {
 func (e *Editor) Open(filename string) error {
 	e.filename = filename
 	if !fileExists(filename) {
-		ioutil.WriteFile(filename, []byte{}, os.ModeDevice)
+		ioutil.WriteFile(filename, []byte{}, 0555)
 	}
 	raw, err := ioutil.ReadFile(filename)
 	if err != nil {
