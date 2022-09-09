@@ -268,6 +268,10 @@ func (e *Editor) HandleMoveCursor(x Cmd) {
 		break
 	}
 
+	if e.cy >= uint(len(e.rows)) {
+		e.cy = uint(len(e.rows)) - 1
+	}
+
 	rowL := e.GetRowLength()
 	if rowL == 0 {
 		e.cx = 0
@@ -374,7 +378,8 @@ func (e *Editor) GetCharHistory() [5]byte {
 
 func (e *Editor) DrawStatusBar() {
 	y, x := e.GetWindowSize()
-	fmt.Printf("STATUS BAR -- (%d, %d) of (%d, %d) %v ", e.cx, e.cy, x, y, e.GetCharHistory())
+	r := e.GetCurrentRow()
+	fmt.Printf("STATUS BAR -- (%d, %d) of (%d, %d) %v. Row: %d", e.cx, e.cy, x, y, e.GetCharHistory(), r.RenderLen())
 }
 
 func (e *Editor) Close() error {
