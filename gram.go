@@ -24,11 +24,17 @@ func main() {
 }
 
 func Exit(e Editor, err error) {
+	saveErr := e.Save("editor_1.out")
 	e.DisableRawMode()
 	fmt.Println("\x1b[2J")
 	fmt.Println("\x1b[H")
 	if err != nil {
 		fmt.Println(err)
+	}
+	if saveErr != nil {
+		fmt.Println(saveErr)
+	}
+	if saveErr != nil || err != nil {
 		os.Exit(1)
 	}
 	os.Exit(0)

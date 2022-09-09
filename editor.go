@@ -57,9 +57,10 @@ func (e *Editor) Open(filename string) error {
 		return err
 	}
 	file := strings.ReplaceAll(string(raw), "\r", "\n")
-	e.rows = make([]Row, len(file))
+	rows := strings.Split(file, "\n")
+	e.rows = make([]Row, len(rows))
 
-	for i, s := range strings.Split(file, "\n") {
+	for i, s := range rows {
 		e.rows[i] = ConstructRow(s)
 	}
 	return nil
@@ -190,9 +191,15 @@ func (e *Editor) GetRowLength() uint {
 	return e.GetCurrentRow().RenderLen()
 }
 
-func (e *Editor) GetHorizontalShift() uint {
-	v := e.GetCurrentRow().GetCharAt(e.cy)
-	if v == '\t' {
+func (e *Editor) GetHorizontalRightShift() uint {
+	if e.GetCurrentRow().GetCharAt(e.cx) == '\t' {
+		return 4
+	}
+	return 1
+}
+
+func (e *Editor) GetHorizontalLeftShift() uint {
+	if e.GetCurrentRow().GetCharAt(e.cx) == '\t' {
 		return 4
 	}
 	return 1
@@ -202,7 +209,7 @@ func (e *Editor) HandleMoveCursor(x Cmd) {
 	switch x {
 	case LEFT:
 		if e.cx != 0 {
-			e.cx--
+			e.cx -= 1 // e.GetHorizontalLeftShift()
 
 			// Move left at start of line, go to end of previous line
 		} else if e.cy != 0 {
@@ -218,7 +225,7 @@ func (e *Editor) HandleMoveCursor(x Cmd) {
 				e.cx = 0
 			}
 		} else {
-			e.cx++ // Allow for horizontal scroll
+			e.cx += 1 // e.GetHorizontalRightShift()
 		}
 		break
 	case UP:
@@ -227,7 +234,9 @@ func (e *Editor) HandleMoveCursor(x Cmd) {
 		}
 		break
 	case DOWN:
-		e.cy++
+		if (e.cy + 1) < uint(len(e.rows)) {
+			e.cy++
+		}
 		break
 	case PAGE_UP:
 		for i := uint(0); i < e.wRows; i++ {
@@ -357,6 +366,21 @@ func (e *Editor) GetCharHistory() [5]byte {
 func (e *Editor) DrawStatusBar() {
 	y, x := e.GetWindowSize()
 	fmt.Printf("STATUS BAR -- (%d, %d) of (%d, %d) %v ", e.cx, e.cy, x, y, e.GetCharHistory())
+}
+
+func (e *Editor) Save(filename string) error {
+	f, err := os.Create(filename)
+	if err != nil {
+		return err
+	}
+
+	for _, row := range e.rows {
+		_, err := f.Write(row.Export())
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func Ctrl(b byte) byte {
