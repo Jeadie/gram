@@ -6,8 +6,9 @@ import (
 )
 
 func main() {
+	filename := os.Args[1]
 	e := ConstructEditor()
-	err := e.Open("editor.go")
+	err := e.Open(filename)
 
 	// TODO: refactor EnableRawMode() into Editor struct function
 	t, err := EnableRawMode()
@@ -24,17 +25,16 @@ func main() {
 }
 
 func Exit(e Editor, err error) {
-	saveErr := e.Save("editor_1.out")
-	e.DisableRawMode()
+	closeErr := e.Close()
 	fmt.Println("\x1b[2J")
 	fmt.Println("\x1b[H")
 	if err != nil {
 		fmt.Println(err)
 	}
-	if saveErr != nil {
-		fmt.Println(saveErr)
+	if closeErr != nil {
+		fmt.Println(closeErr)
 	}
-	if saveErr != nil || err != nil {
+	if closeErr != nil || err != nil {
 		os.Exit(1)
 	}
 	os.Exit(0)

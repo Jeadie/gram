@@ -33,6 +33,8 @@ type Editor struct {
 
 	previousChar [5]byte
 	pCharI       int
+
+	filename string
 }
 
 func ConstructEditor() Editor {
@@ -43,6 +45,7 @@ func ConstructEditor() Editor {
 		colOffset:    0,
 		wRows:        0,
 		wCols:        0,
+		filename:     "",
 		rows:         []Row{},
 		previousChar: [5]byte{0x00, 0x00, 0x00, 0x00, 0x00},
 		pCharI:       0,
@@ -52,6 +55,7 @@ func ConstructEditor() Editor {
 }
 
 func (e *Editor) Open(filename string) error {
+	e.filename = filename
 	raw, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return err
@@ -368,8 +372,15 @@ func (e *Editor) DrawStatusBar() {
 	fmt.Printf("STATUS BAR -- (%d, %d) of (%d, %d) %v ", e.cx, e.cy, x, y, e.GetCharHistory())
 }
 
-func (e *Editor) Save(filename string) error {
-	f, err := os.Create(filename)
+func (e *Editor) Close() error {
+	saveErr := e.Save()
+	e.DisableRawMode()
+	e.filename = ""
+	return saveErr
+}
+
+func (e *Editor) Save() error {
+	f, err := os.Create(e.filename)
 	if err != nil {
 		return err
 	}
