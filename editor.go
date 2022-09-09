@@ -167,7 +167,7 @@ func (e *Editor) KeyPress() bool {
 	}
 
 	if !isControlChar(x) {
-		e.rows[e.cy].SetCharAt(e.cx, x)
+		e.GetCurrentRow().AddCharAt(e.cx, x)
 	}
 	return false
 }
@@ -182,8 +182,20 @@ func (e *Editor) DisableRawMode() {
 	}
 }
 
+func (e *Editor) GetCurrentRow() *Row {
+	return &e.rows[e.cy]
+}
+
 func (e *Editor) GetRowLength() uint {
-	return e.rows[e.cy].RenderLen()
+	return e.GetCurrentRow().RenderLen()
+}
+
+func (e *Editor) GetHorizontalShift() uint {
+	v := e.GetCurrentRow().GetCharAt(e.cy)
+	if v == '\t' {
+		return 4
+	}
+	return 1
 }
 
 func (e *Editor) HandleMoveCursor(x Cmd) {
