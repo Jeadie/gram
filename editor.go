@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"golang.org/x/sys/unix"
 	"io/ioutil"
@@ -56,6 +57,9 @@ func ConstructEditor() Editor {
 
 func (e *Editor) Open(filename string) error {
 	e.filename = filename
+	if !fileExists(filename) {
+		ioutil.WriteFile(filename, []byte{}, os.ModeDevice)
+	}
 	raw, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return err
@@ -67,6 +71,7 @@ func (e *Editor) Open(filename string) error {
 	for i, s := range rows {
 		e.rows[i] = ConstructRow(s)
 	}
+
 	return nil
 }
 
@@ -438,4 +443,9 @@ func EnableRawMode() (unix.Termios, error) {
 	}
 
 	return returnTermios, err
+}
+
+func fileExists(filePath string) bool {
+	_, err := os.Stat(filePath)
+	return !errors.Is(err, os.ErrNotExist)
 }

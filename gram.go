@@ -9,6 +9,9 @@ func main() {
 	filename := os.Args[1]
 	e := ConstructEditor()
 	err := e.Open(filename)
+	if err != nil {
+		Exit(e, err)
+	}
 
 	// TODO: refactor EnableRawMode() into Editor struct function
 	t, err := EnableRawMode()
