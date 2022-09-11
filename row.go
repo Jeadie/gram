@@ -35,6 +35,11 @@ func (r *Row) getSrcIndex(renderI uint) int {
 			j++
 		}
 	}
+
+	// Accomodate adding to end of line.
+	if j >= renderI {
+		return len(r.src)
+	}
 	return 0
 }
 
