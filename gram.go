@@ -7,8 +7,7 @@ import (
 
 func main() {
 	filename := os.Args[1]
-	e := ConstructEditor()
-	err := e.Open(filename)
+	e, err := ConstructEditor(filename)
 	if err != nil {
 		Exit(e, err)
 	}
