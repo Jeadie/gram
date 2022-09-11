@@ -38,6 +38,20 @@ func (r *Row) getSrcIndex(renderI uint) int {
 	return 0
 }
 
+func (r *Row) RemoveCharAt(renderI uint) {
+	j := r.getSrcIndex(renderI)
+	if j == 0 {
+		// TODO: add current row to row above
+		return
+	} else if j-1 >= len(r.src) {
+
+		// Delete last character in row, no characters to append
+		r.src = r.src[:j-1]
+	} else {
+		r.src = append(r.src[:j-1], r.src[j:]...)
+	}
+}
+
 func (r *Row) AddCharAt(renderI uint, b byte) {
 	j := r.getSrcIndex(renderI)
 

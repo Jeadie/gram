@@ -22,6 +22,7 @@ const (
 	HOME_KEY      = 1006
 	END_KEY       = 1007
 	DELETE        = 1008
+	BACKSPACE     = 127
 )
 
 type Editor struct {
@@ -168,6 +169,9 @@ func (e *Editor) KeyPress() bool {
 		c := e.HandleEscapeCode()
 		e.HandleMoveCursor(c)
 		break
+	case BACKSPACE:
+		e.GetCurrentRow().RemoveCharAt(e.cx)
+		e.HandleMoveCursor(LEFT)
 	}
 
 	if !isControlChar(x) {
