@@ -31,8 +31,7 @@ type Editor struct {
 	rows                 []Row // Rows in file
 	rowOffset, colOffset uint  // Position in file of top left corner of editor
 
-	previousChar [5]byte
-	pCharI       int
+	charHistory ByteRing
 
 	filename string
 }
@@ -44,16 +43,15 @@ func ConstructEditor(filename string) (Editor, error) {
 		return Editor{}, err
 	}
 	e := Editor{
-		cx:           0,
-		cy:           0,
-		rowOffset:    0,
-		colOffset:    0,
-		wRows:        0,
-		wCols:        0,
-		filename:     filename,
-		rows:         rows,
-		previousChar: [5]byte{0x00, 0x00, 0x00, 0x00, 0x00},
-		pCharI:       0,
+		cx:          0,
+		cy:          0,
+		rowOffset:   0,
+		colOffset:   0,
+		wRows:       0,
+		wCols:       0,
+		filename:    filename,
+		rows:        rows,
+		charHistory: CreateByteRing(5),
 	}
 	e.GetWindowSize()
 	return e, nil
@@ -157,9 +155,7 @@ func (e *Editor) ReadChar() byte {
 		return 0x00
 	}
 
-	e.previousChar[e.pCharI] = c[0]
-	e.pCharI = (e.pCharI + 1) % 5
-
+	e.charHistory.Insert(c[0])
 	return c[0]
 }
 
@@ -357,19 +353,10 @@ func (e *Editor) HandleEscapeCode() Cmd {
 	return '\x1b'
 }
 
-func (e *Editor) GetCharHistory() [5]byte {
-	r := [5]byte{0x00, 0x00, 0x00, 0x00, 0x00}
-
-	for i := 0; i < 5; i++ {
-		r[i] = e.previousChar[(e.pCharI+(5-i-1))%5]
-	}
-	return r
-}
-
 func (e *Editor) DrawStatusBar() {
 	y, x := e.GetWindowSize()
 	r := e.GetCurrentRow()
-	fmt.Printf("STATUS BAR -- (%d, %d) of (%d, %d) %v. Row: %d", e.cx, e.cy, x, y, e.GetCharHistory(), r.RenderLen())
+	fmt.Printf("STATUS BAR -- (%d, %d) of (%d, %d) %v. Row: %d", e.cx, e.cy, x, y, e.charHistory.GetHistory(), r.RenderLen())
 }
 
 func (e *Editor) Close() error {
