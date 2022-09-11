@@ -172,6 +172,7 @@ func (e *Editor) KeyPress() bool {
 
 	if !isControlChar(x) {
 		e.GetCurrentRow().AddCharAt(e.cx, x)
+		e.HandleMoveCursor(RIGHT)
 	}
 	return false
 }
