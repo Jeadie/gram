@@ -3,9 +3,7 @@ package main
 import (
 	"fmt"
 	"golang.org/x/sys/unix"
-	"io/ioutil"
 	"os"
-	"strings"
 )
 
 type Cmd rune
@@ -64,34 +62,6 @@ func ConstructEditor(filename string) (Editor, error) {
 	return e, nil
 }
 
-func (e *Editor) Touch(filename string) error {
-	return ioutil.WriteFile(filename, []byte{}, 0555)
-}
-
-func (e *Editor) Open(filename string) error {
-	e.filename = filename
-	if !fileExists(filename) {
-		err := e.Touch(filename)
-		if err != nil {
-			return err
-		}
-	}
-
-	raw, err := ioutil.ReadFile(filename)
-	if err != nil {
-		return err
-	}
-	file := strings.ReplaceAll(string(raw), "\r", "\n")
-	rows := strings.Split(file, "\n")
-	e.rows = make([]Row, len(rows))
-
-	for i, s := range rows {
-		e.rows[i] = ConstructRow(s)
-	}
-
-	return nil
-}
-
 func (e *Editor) ShowCursor() {
 	fmt.Printf("\x1b[%d;%dH", (e.cy-e.rowOffset)+1, (e.cx-e.colOffset)+1)
 }
@@ -106,6 +76,22 @@ func (e *Editor) GetWindowSize() (uint, uint) {
 	}
 	e.wRows, e.wCols = GetWindowSize()
 	return e.wRows, e.wCols
+}
+
+func (e *Editor) GetCurrentRow() *Row {
+	return &e.rows[e.cy]
+}
+
+func (e *Editor) GetRowLength() uint {
+	return e.GetCurrentRow().RenderLen()
+}
+
+func (e *Editor) GetEditorRows() uint {
+	return uint(e.wRows) - STATUS_BAR
+}
+
+func (e *Editor) GetDocumentRows() uint {
+	return uint(len(e.rows))
 }
 
 func (e *Editor) DrawRows() {
@@ -191,14 +177,6 @@ func (e *Editor) KeyPress() bool {
 	return false
 }
 
-func (e *Editor) GetCurrentRow() *Row {
-	return &e.rows[e.cy]
-}
-
-func (e *Editor) GetRowLength() uint {
-	return e.GetCurrentRow().RenderLen()
-}
-
 func (e *Editor) HandleMoveCursor(x Cmd) {
 	switch x {
 	case LEFT:
@@ -267,14 +245,6 @@ func (e *Editor) HandleMoveCursor(x Cmd) {
 	} else if e.cx > rowL {
 		e.cx = rowL
 	}
-}
-
-func (e *Editor) GetEditorRows() uint {
-	return uint(e.wRows) - STATUS_BAR
-}
-
-func (e *Editor) GetDocumentRows() uint {
-	return uint(len(e.rows))
 }
 
 func (e *Editor) SetScroll() {
