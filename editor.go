@@ -55,11 +55,19 @@ func ConstructEditor() Editor {
 	return e
 }
 
+func (e *Editor) Touch(filename string) error {
+	return ioutil.WriteFile(filename, []byte{}, 0555)
+}
+
 func (e *Editor) Open(filename string) error {
 	e.filename = filename
 	if !fileExists(filename) {
-		ioutil.WriteFile(filename, []byte{}, 0555)
+		err := e.Touch(filename)
+		if err != nil {
+			return err
+		}
 	}
+
 	raw, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return err
