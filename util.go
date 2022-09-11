@@ -80,7 +80,7 @@ func Touch(filename string) error {
 
 func OpenOrCreate(filename string) ([]Row, error) {
 	if !fileExists(filename) {
-		err := 	Touch(filename)
+		err := Touch(filename)
 		if err != nil {
 			return []Row{}, err
 		}

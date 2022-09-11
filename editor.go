@@ -168,6 +168,7 @@ func (e *Editor) KeyPress() bool {
 	case '\x1b':
 		c := e.HandleEscapeCode()
 		e.HandleMoveCursor(c)
+		e.HandleOtherEscapedCmds(c)
 		break
 	case BACKSPACE:
 		e.GetCurrentRow().RemoveCharAt(e.cx)
@@ -373,4 +374,13 @@ func (e *Editor) Save() error {
 		}
 	}
 	return nil
+}
+
+// HandleOtherEscapedCmds is responsible for handling other ANSI escape keys that don't simply move the cursor
+// (i.e. they can move the cursor, but only through e.HandleMoveCursor()).
+func (e *Editor) HandleOtherEscapedCmds(c Cmd) {
+	switch c {
+	case DELETE:
+		e.GetCurrentRow().RemoveCharAt(e.cx + 1)
+	}
 }
