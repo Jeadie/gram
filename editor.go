@@ -192,7 +192,7 @@ func (e *Editor) HandleMoveCursor(x Cmd) {
 	case RIGHT:
 		// Move right at EOL, go to start of next line.
 		if (e.cx + 1) > e.GetRowLength() {
-			if e.cy < e.GetDocumentRows() {
+			if (e.cy + 1) < e.GetDocumentRows() {
 				e.cy++
 				e.cx = 0
 			}
@@ -206,7 +206,7 @@ func (e *Editor) HandleMoveCursor(x Cmd) {
 		}
 		break
 	case DOWN:
-		if (e.cy + 1) < uint(len(e.rows)) {
+		if (e.cy + 1) < e.GetDocumentRows() {
 			e.cy++
 		}
 		break
