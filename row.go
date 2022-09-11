@@ -14,6 +14,16 @@ func ConstructRow(s string) Row {
 	}
 }
 
+// SplitAt a given rendered index into a row. Creates two new rows, original unchanged.
+func (r Row) SplitAt(i uint) (*Row, *Row) {
+	a := Row{src: make([]byte, i)}
+	b := Row{src: make([]byte, uint(len(r.src))-i)}
+	copy(a.src, r.src[:i])
+	copy(b.src, r.src[i:])
+
+	return &a, &b
+}
+
 func (r Row) Export() []byte {
 	return append(r.src, '\n')
 }

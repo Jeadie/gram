@@ -13,6 +13,7 @@ type Cmd rune
 const STATUS_BAR = 1
 
 const (
+	// Must be higher than 128 to avoid clashing with ASCII
 	UP        Cmd = 1000
 	DOWN          = 1001
 	LEFT          = 1002
@@ -22,7 +23,10 @@ const (
 	HOME_KEY      = 1006
 	END_KEY       = 1007
 	DELETE        = 1008
-	BACKSPACE     = 127
+
+	// Specific ANSI mappings
+	BACKSPACE = 127
+	ENTER     = 13
 )
 
 type Editor struct {
@@ -173,6 +177,9 @@ func (e *Editor) KeyPress() bool {
 	case BACKSPACE:
 		e.GetCurrentRow().RemoveCharAt(e.cx)
 		e.HandleMoveCursor(LEFT)
+	case ENTER:
+		e.SplitCurrentRow()
+		e.HandleMoveCursor(RIGHT) // Jumps to start of next (newly-created) line.
 	}
 
 	if !isControlChar(x) {
@@ -383,4 +390,18 @@ func (e *Editor) HandleOtherEscapedCmds(c Cmd) {
 	case DELETE:
 		e.GetCurrentRow().RemoveCharAt(e.cx + 1)
 	}
+}
+
+// SplitCurrentRow based on the current cursor position.
+func (e *Editor) SplitCurrentRow() {
+	a, b := e.GetCurrentRow().SplitAt(e.cx)
+
+	// Use e.cy++ & e.GetCurrentRow() to keep array access defined once.
+	curr := e.GetCurrentRow()
+	*curr = *a
+
+	e.cy++
+	next := e.GetCurrentRow()
+	*next = *b
+	e.cy--
 }
