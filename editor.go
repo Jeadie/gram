@@ -14,15 +14,17 @@ const STATUS_BAR = 1
 
 const (
 	// Must be higher than 128 to avoid clashing with ASCII
-	UP        Cmd = 1000
-	DOWN          = 1001
-	LEFT          = 1002
-	RIGHT         = 1003
-	PAGE_UP       = 1004
-	PAGE_DOWN     = 1005
-	HOME_KEY      = 1006
-	END_KEY       = 1007
-	DELETE        = 1008
+	UP          Cmd = 1000
+	DOWN            = 1001
+	LEFT            = 1002
+	RIGHT           = 1003
+	PAGE_UP         = 1004
+	PAGE_DOWN       = 1005
+	HOME_KEY        = 1006
+	END_KEY         = 1007
+	DELETE          = 1008
+	SHIFT_RIGHT     = 1009
+	SHIFT_LEFT      = 1010
 
 	// Specific ANSI mappings
 	BACKSPACE = 127
@@ -56,7 +58,7 @@ func ConstructEditor(filename string) (Editor, error) {
 		wCols:       0,
 		filename:    filename,
 		rows:        rows,
-		charHistory: CreateByteRing(5),
+		charHistory: CreateByteRing(10),
 	}
 	e.GetWindowSize()
 	return e, nil
@@ -249,6 +251,10 @@ func (e *Editor) HandleMoveCursor(x Cmd) {
 			e.colOffset = e.cx - e.wCols
 		}
 		break
+	case SHIFT_RIGHT:
+		e.cx = e.GetCurrentRow().GetNextWordFrom(e.cx, true)
+	case SHIFT_LEFT:
+		e.cx = e.GetCurrentRow().GetNextWordFrom(e.cx, false)
 	}
 
 	if e.cy >= uint(len(e.rows)) {
@@ -319,6 +325,24 @@ func (e *Editor) HandleEscapeCode() Cmd {
 					return HOME_KEY
 				case '8':
 					return END_KEY
+				}
+			}
+			if c == 0x3B {
+				d := e.ReadChar()
+				if d == '\x1b' {
+					return '\x1b'
+				}
+				e := e.ReadChar()
+				if e == '\x1b' {
+					return '\x1b'
+				}
+				if d == 0x32 {
+					switch e {
+					case 0x43:
+						return SHIFT_RIGHT
+					case 0x44:
+						return SHIFT_LEFT
+					}
 				}
 			}
 		}

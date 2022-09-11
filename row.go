@@ -89,3 +89,30 @@ func (r *Row) SetCharAt(renderI uint, b byte) {
 func (r Row) RenderLen() uint {
 	return uint(len(r.Render()))
 }
+
+// GetNextWordFrom the current render index. Returns the index of the space in front of the next word. parameter nextWordRight
+// Determined if next word left (false), or right (true).
+func (r Row) GetNextWordFrom(renderI uint, nextWordRight bool) uint {
+	if len(r.src) == 0 {
+		return 0
+	}
+
+	// TODO: [BUG] Indexes src index not render index. Therefore we need to address possibility
+	//   r.src[i] == '/t' and thus would shift by more than one.
+	j := r.getSrcIndex(renderI)
+	if nextWordRight {
+		for i := j + 1; i < len(r.src); i++ {
+			if r.src[i] == ' ' {
+				return uint(i)
+			}
+		}
+		return uint(len(r.src) - 1)
+	} else {
+		for i := j - 1; i >= 0; i-- {
+			if r.src[i] == ' ' {
+				return uint(i)
+			}
+		}
+		return 0
+	}
+}
