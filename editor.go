@@ -161,15 +161,13 @@ func (e *Editor) ReadChar() byte {
 
 func (e *Editor) KeyPress() bool {
 	x := e.ReadChar()
-	var c Cmd = 0x00
 	switch x {
 	case Ctrl('q'):
 		return true
 	case '\x1b':
-		c = e.HandleEscapeCode()
+		c := e.HandleEscapeCode()
 		e.HandleMoveCursor(c)
 		break
-
 	}
 
 	if !isControlChar(x) {
@@ -186,25 +184,11 @@ func (e *Editor) GetRowLength() uint {
 	return e.GetCurrentRow().RenderLen()
 }
 
-func (e *Editor) GetHorizontalRightShift() uint {
-	if e.GetCurrentRow().GetCharAt(e.cx) == '\t' {
-		return 4
-	}
-	return 1
-}
-
-func (e *Editor) GetHorizontalLeftShift() uint {
-	if e.GetCurrentRow().GetCharAt(e.cx) == '\t' {
-		return 4
-	}
-	return 1
-}
-
 func (e *Editor) HandleMoveCursor(x Cmd) {
 	switch x {
 	case LEFT:
 		if e.cx != 0 {
-			e.cx -= 1 // e.GetHorizontalLeftShift()
+			e.cx -= 1
 
 			// Move left at start of line, go to end of previous line
 		} else if e.cy != 0 {
@@ -220,7 +204,7 @@ func (e *Editor) HandleMoveCursor(x Cmd) {
 				e.cx = 0
 			}
 		} else {
-			e.cx += 1 // e.GetHorizontalRightShift()
+			e.cx += 1
 		}
 		break
 	case UP:
