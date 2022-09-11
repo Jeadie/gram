@@ -394,8 +394,15 @@ func (e *Editor) SplitCurrentRow() {
 	curr := e.GetCurrentRow()
 	*curr = *a
 
-	e.cy++
-	next := e.GetCurrentRow()
-	*next = *b
-	e.cy--
+	if (e.cy + 1) >= e.GetDocumentRows() {
+
+		// Last line in file, must make a new row
+		e.rows = append(e.rows, *b)
+	} else {
+		e.cy++
+		next := e.GetCurrentRow()
+		*next = *b
+		e.cy--
+	}
+
 }
