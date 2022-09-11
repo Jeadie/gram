@@ -75,12 +75,12 @@ func GetWindowSize() (uint, uint) {
 }
 
 func Touch(filename string) error {
-	return ioutil.WriteFile(filename, []byte{}, 0555)
+	return ioutil.WriteFile(filename, []byte{}, 0666)
 }
 
 func OpenOrCreate(filename string) ([]Row, error) {
 	if !fileExists(filename) {
-		err := Touch(filename)
+		err := 	Touch(filename)
 		if err != nil {
 			return []Row{}, err
 		}
