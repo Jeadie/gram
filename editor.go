@@ -27,6 +27,7 @@ const (
 	// Specific ANSI mappings
 	BACKSPACE = 127
 	ENTER     = 13
+	SEARCH    = 6 // Ctrl-F on Mac OS
 )
 
 type Editor struct {
@@ -63,11 +64,23 @@ func ConstructEditor(filename string) (Editor, error) {
 }
 
 func (e *Editor) ShowCursor() {
-	fmt.Printf("\x1b[%d;%dH", (e.cy-e.rowOffset)+1, (e.cx-e.colOffset)+1)
+	e.MoveCursor((e.cx-e.colOffset)+1, (e.cy-e.rowOffset)+1)
 }
 
 func (e *Editor) HideCursor() {
 	fmt.Printf("\x1b[%d;%dL", (e.cy-e.rowOffset)+1, (e.cx-e.colOffset)+1)
+}
+
+func (e *Editor) MoveCursor(x, y uint) {
+	fmt.Printf("\x1b[%d;%dH", y, x)
+}
+
+func (e *Editor) MoveCursorToStatusBar() {
+	e.MoveCursor(0, e.wRows-1)
+}
+
+func (e *Editor) ClearLine() {
+	fmt.Printf("\x1b[K")
 }
 
 func (e *Editor) GetWindowSize() (uint, uint) {
@@ -95,7 +108,7 @@ func (e *Editor) GetDocumentRows() uint {
 }
 
 func (e *Editor) DrawRows() {
-	fmt.Printf("\x1b[K") // Clear line
+	e.ClearLine()
 
 	r := e.GetEditorRows()
 
@@ -168,6 +181,8 @@ func (e *Editor) KeyPress() bool {
 	case ENTER:
 		e.SplitCurrentRow()
 		e.HandleMoveCursor(RIGHT) // Jumps to start of next (newly-created) line.
+	case SEARCH:
+		e.cx, e.cy = e.RunSearch()
 	}
 
 	if !isControlChar(x) {
@@ -405,4 +420,34 @@ func (e *Editor) SplitCurrentRow() {
 		e.cy--
 	}
 
+}
+
+// Run Search across file. Return co-ordinate, (x, y) of first result.
+// Will read inputs until an enter is pressed, and will be used as search term.
+func (e *Editor) RunSearch() (uint, uint) {
+	q := make([]byte, 0)
+	b := e.ReadChar()
+
+	for b != ENTER {
+		e.MoveCursorToStatusBar()
+		e.ClearLine()
+		fmt.Printf("SEARCH: %s", string(q))
+
+		if !isControlChar(b) {
+			q = append(q, b)
+		} else if b == BACKSPACE && len(q) > 0 {
+			q = q[:len(q)-1]
+		}
+		b = e.ReadChar()
+
+	}
+
+	for r := range SearchRows(e.rows, string(q)) {
+		e.MoveCursor(r.startI, r.rowI)
+		return r.startI, r.rowI
+	}
+
+	// Default back to current position
+	e.MoveCursor(e.cx, e.cy)
+	return e.cx, e.cy
 }

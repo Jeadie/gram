@@ -116,3 +116,17 @@ func (r Row) GetNextWordFrom(renderI uint, nextWordRight bool) uint {
 		return 0
 	}
 }
+
+// RenderIndexOf string within row starting `from` . Returns -1 if not found, or render index from
+// start of row (not from `from` index).
+func (r *Row) RenderIndexOf(s string, from int) int {
+	if from >= len(r.Render()) {
+		return -1
+	}
+
+	y := strings.Index(r.Render()[from:], s)
+	if y == -1 {
+		return -1
+	}
+	return from + y
+}
