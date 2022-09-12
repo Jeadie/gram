@@ -27,7 +27,8 @@ const (
 	// Specific ANSI mappings
 	BACKSPACE = 127
 	ENTER     = 13
-	SEARCH    = 6 // Ctrl-F on Mac OS
+	SEARCH    = 6  // Ctrl-F on Mac OS
+	UNDO      = 26 // Ctrl-X on Mac OS
 )
 
 type Editor struct {
@@ -36,10 +37,9 @@ type Editor struct {
 	cx, cy               uint  // Position in file of cursor
 	rows                 []Row // Rows in file
 	rowOffset, colOffset uint  // Position in file of top left corner of editor
-
-	charHistory ByteRing
-
-	filename string
+	filename             string
+	charHistory          ByteRing
+	cmdHistory           *CommandHistory
 }
 
 func ConstructEditor(filename string) (Editor, error) {
@@ -58,6 +58,7 @@ func ConstructEditor(filename string) (Editor, error) {
 		filename:    filename,
 		rows:        rows,
 		charHistory: CreateByteRing(10),
+		cmdHistory:  CreateCommandHistory(),
 	}
 	e.GetWindowSize()
 	return e, nil
@@ -185,9 +186,17 @@ func (e *Editor) KeyPress() bool {
 
 	case ENTER:
 		e.SplitCurrentRow()
+		y := e.cy
+		e.cmdHistory.AddCmd(
+			func(e *Editor) error { e.JoinRows(y, y+1); return nil },
+			func(e *Editor) error { return fmt.Errorf("REDO unimplemented") },
+		)
 		e.HandleMoveCursor(RIGHT) // Jumps to start of next (newly-created) line.
 	case SEARCH:
 		e.cx, e.cy = e.RunSearch()
+
+	case UNDO:
+		e.cmdHistory.Undo(e)
 	}
 
 	if !isControlChar(x) {
@@ -376,7 +385,8 @@ func (e *Editor) HandleEscapeCode() Cmd {
 func (e *Editor) DrawStatusBar() {
 	y, x := e.GetWindowSize()
 	r := e.GetCurrentRow()
-	fmt.Printf("STATUS BAR -- (%d, %d) of (%d, %d) %v. Row: %d", e.cx, e.cy, x, y, e.charHistory.GetHistory(), r.RenderLen())
+	h := e.cmdHistory.Depth()
+	fmt.Printf("STATUS BAR -- (%d, %d) of (%d, %d) %v. Row: %d. History: %d", e.cx, e.cy, x, y, e.charHistory.GetHistory(), r.RenderLen(), h)
 }
 
 func (e *Editor) Close() error {
@@ -464,4 +474,19 @@ func (e *Editor) RunSearch() (uint, uint) {
 	// Default back to current position
 	e.MoveCursor(e.cx, e.cy)
 	return e.cx, e.cy
+}
+
+// JoinRows from b into row a. If a or b index out of range, no action applied.
+func (e *Editor) JoinRows(a, b uint) {
+	if a >= e.GetDocumentRows() || b >= e.GetDocumentRows() {
+		return
+	}
+	e.rows[a].Append(&e.rows[b])
+
+	// Remove row b
+	if (b + 1) < e.GetDocumentRows() {
+		e.rows = append(e.rows[:b], e.rows[b+1:]...)
+	} else {
+		e.rows = e.rows[:b]
+	}
 }

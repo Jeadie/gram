@@ -130,3 +130,8 @@ func (r *Row) RenderIndexOf(s string, from int) int {
 	}
 	return from + y
 }
+
+// Append Row ro, into Row.
+func (r *Row) Append(ro *Row) {
+	r.src = append(r.src, ro.src...)
+}

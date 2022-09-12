@@ -14,17 +14,32 @@ type CommandHistory struct {
 	redo []CommandFn
 }
 
-// Undo the previous command
-func (cs *CommandHistory) Undo(e *Editor) {
+func CreateCommandHistory() *CommandHistory {
+	return &CommandHistory{
+		undo: make([]CommandFn, 0),
+		redo: make([]CommandFn, 0),
+	}
+}
+
+func (cs *CommandHistory) pop() (CommandFn, bool) {
 	if len(cs.undo) == 0 {
-		return
+		return CommandFn{}, false
 	}
 
 	c := cs.undo[len(cs.undo)-1]
-	c.u(e)
+	cs.undo = cs.undo[:len(cs.undo)-1]
+	return c, true
+}
 
-	// Add applied undo function to redo.
-	cs.redo = append(cs.redo, c)
+// Undo the previous command
+func (cs *CommandHistory) Undo(e *Editor) {
+	c, exists := cs.pop()
+	if exists {
+		c.u(e)
+
+		// Add applied undo function to redo.
+		cs.redo = append(cs.redo, c)
+	}
 }
 
 // Redo the previously undone command.
@@ -43,4 +58,8 @@ func (cs *CommandHistory) Redo(e *Editor) {
 // AddCmd adds the commands to the Command history.
 func (cs *CommandHistory) AddCmd(u UndoCmdFn, r RedoCmdFn) {
 	cs.undo = append(cs.undo, CommandFn{u: u, r: r})
+}
+
+func (cs *CommandHistory) Depth() uint {
+	return uint(len(cs.undo))
 }
