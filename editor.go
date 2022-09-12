@@ -176,8 +176,13 @@ func (e *Editor) KeyPress() bool {
 		e.HandleOtherEscapedCmds(c)
 		break
 	case BACKSPACE:
-		e.GetCurrentRow().RemoveCharAt(e.cx)
-		e.HandleMoveCursor(LEFT)
+		if e.GetRowLength() == 0 {
+			e.RemoveCurrentRow()
+		} else {
+			e.GetCurrentRow().RemoveCharAt(e.cx)
+			e.HandleMoveCursor(LEFT)
+		}
+
 	case ENTER:
 		e.SplitCurrentRow()
 		e.HandleMoveCursor(RIGHT) // Jumps to start of next (newly-created) line.
@@ -190,6 +195,15 @@ func (e *Editor) KeyPress() bool {
 		e.HandleMoveCursor(RIGHT)
 	}
 	return false
+}
+
+func (e *Editor) RemoveCurrentRow() {
+	if (e.cy+1) == e.GetDocumentRows() && e.GetDocumentRows() > 0 {
+		// Last row, just remove
+		e.rows = e.rows[:]
+	} else if e.GetDocumentRows() > 0 {
+		e.rows = append(e.rows[:e.cy], e.rows[e.cy+1:]...)
+	}
 }
 
 func (e *Editor) HandleMoveCursor(x Cmd) {
