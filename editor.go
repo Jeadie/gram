@@ -186,7 +186,8 @@ func (e *Editor) KeyPress() bool {
 
 	case ENTER:
 		e.SplitCurrentRow()
-		y := e.cy
+
+		y := e.cy // So that AddCmd had value of current y, not future e.cy
 		e.cmdHistory.AddCmd(
 			func(e *Editor) error { e.JoinRows(y, y+1); return nil },
 			func(e *Editor) error { return fmt.Errorf("REDO unimplemented") },
@@ -428,20 +429,17 @@ func (e *Editor) HandleOtherEscapedCmds(c Cmd) {
 // SplitCurrentRow based on the current cursor position.
 func (e *Editor) SplitCurrentRow() {
 	a, b := e.GetCurrentRow().SplitAt(e.cx)
-
-	// Use e.cy++ & e.GetCurrentRow() to keep array access defined once.
-	curr := e.GetCurrentRow()
-	*curr = *a
+	newRows := []Row{*a, *b}
 
 	if (e.cy + 1) >= e.GetDocumentRows() {
 
 		// Last line in file, must make a new row
-		e.rows = append(e.rows, *b)
+		e.rows = append(e.rows[:e.GetDocumentRows()-1], newRows...)
 	} else {
-		e.cy++
-		next := e.GetCurrentRow()
-		*next = *b
-		e.cy--
+		end := make([]Row, e.GetDocumentRows()-e.cy-1)
+		copy(end, e.rows[e.cy+1:])
+		e.rows = append(e.rows[:e.cy], newRows...)
+		e.rows = append(e.rows, end...)
 	}
 
 }
