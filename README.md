@@ -9,3 +9,6 @@ To build one yourself, visit the [tutorial](https://viewsourcecode.org/snaptoken
  - Linting
  - Usage highlighting
  - Auto-save / checkpointing
+ - Copy-paste functionality
+ - Handle TAB more graciously
+ - Handle Unicode and discrepancies between src and rende
