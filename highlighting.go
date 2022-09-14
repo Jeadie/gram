@@ -56,32 +56,58 @@ func doCprintfParse(x string) string {
 
 		s := sections[i] // Allows us to increment i within loop
 
-		// Section can be just a Colour
+		// Section can be just a Colour, "%Red"
 		v, exists := AllowedColours[s]
 		if exists {
 			if i+2 >= len(sections) {
 				panic("Bad")
 			}
 			text := sections[i+1]
-			result = append(result, C(text, v))
+			result = append(result, C(text, v))    // Coloured content
+			result = append(result, sections[i+2]) // next section will be plaintext as its "%" signified end of previous coloured section.
 			i += 2
 		} else if strings.Index(s, ".") != -1 {
 			// Or it can ba a Color with a placeholder, e.g. Red.s
 			split := strings.SplitN(s, ".", 2)
 			c := split[0]
-			placeholder := split[1]
 			v, exists = AllowedColours[c]
+
+			// If start is a colour
 			if exists {
-				result = append(result, C("%"+placeholder, v))
+				verb, remainingText := ExtractPrintfVerb(split[1])
+				result = append(result, C(verb, v))
+				if len(remainingText) > 0 {
+					result = append(result, remainingText)
+				}
+			} else {
+				result = append(result, fmt.Sprintf("%%%s", s))
 			}
 
 		} else {
 			// Error has occurred
-			panic("bad")
+			result = append(result, fmt.Sprintf("%%%s", s))
 		}
 		i++
 	}
 	return strings.Join(result, "")
+}
+
+func ExtractPrintfVerb(t string) (string, string) {
+	if len(t) == 0 {
+		return "", ""
+	}
+	verb := fmt.Sprintf("%%%s", string(t[0]))
+	ext := map[string]uint{"%c": 2, "%d": 2, "%e": 2, "%f": 2, "%i": 2, "%o": 2, "%s": 2, "%u": 2, "%x": 2}
+
+	_, exists := ext[verb]
+	if exists {
+		if len(t) > 1 {
+			return verb, t[1:]
+		} else {
+			return verb, ""
+		}
+	}
+	return "", ""
 }
 
 // C wraps a string with colour encoding characters. Resets colour at end of string.

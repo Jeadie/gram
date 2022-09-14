@@ -387,7 +387,7 @@ func (e *Editor) DrawStatusBar() {
 	y, x := e.GetWindowSize()
 	r := e.GetCurrentRow()
 	h := e.cmdHistory.Depth()
-	fmt.Printf("STATUS BAR -- (%d, %d) of (%d, %d) %v. Row: %d. History: %d", e.cx, e.cy, x, y, e.charHistory.GetHistory(), r.RenderLen(), h)
+	Cprintf("%DarkBlue%STATUS BAR --% (%Blue.d, %Blue.d) of (%Magenta.d, %Magenta.d) %v. Row: %d. History: %d", e.cx, e.cy, x, y, e.charHistory.GetHistory(), r.RenderLen(), h)
 }
 
 func (e *Editor) Close() error {
