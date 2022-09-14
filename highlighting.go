@@ -37,6 +37,11 @@ func Cprintf(format string, a ...any) (n int, err error) {
 	return fmt.Printf(parsed, a...)
 }
 
+// C wraps a string with colour encoding characters. Resets colour at end of string.
+func C(s string, c Colour) string {
+	return fmt.Sprintf("%s%s%s", c, s, Reset)
+}
+
 func doCprintfParse(x string) string {
 	sections := strings.Split(x, "%")
 	result := make([]string, 0)
@@ -74,7 +79,7 @@ func doCprintfParse(x string) string {
 
 			// If start is a colour
 			if exists {
-				verb, remainingText := ExtractPrintfVerb(split[1])
+				verb, remainingText := extractPrintfVerb(split[1])
 				result = append(result, C(verb, v))
 				if len(remainingText) > 0 {
 					result = append(result, remainingText)
@@ -92,7 +97,7 @@ func doCprintfParse(x string) string {
 	return strings.Join(result, "")
 }
 
-func ExtractPrintfVerb(t string) (string, string) {
+func extractPrintfVerb(t string) (string, string) {
 	// TODO: Implement this better.
 	if len(t) == 0 {
 		return "", ""
@@ -109,9 +114,4 @@ func ExtractPrintfVerb(t string) (string, string) {
 		}
 	}
 	return "", ""
-}
-
-// C wraps a string with colour encoding characters. Resets colour at end of string.
-func C(s string, c Colour) string {
-	return fmt.Sprintf("%s%s%s", c, s, Reset)
 }

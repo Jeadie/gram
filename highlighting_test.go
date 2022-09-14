@@ -84,7 +84,7 @@ func TestExtractPrintfVerb(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.description, func(t *testing.T) {
-			verb, rem := ExtractPrintfVerb(tt.input)
+			verb, rem := extractPrintfVerb(tt.input)
 			if verb != tt.expectedVerb || rem != tt.expectedRem {
 				t.Errorf(`tPrintfVerb("c Remainder") == %s, %s. Expected == %s, %s.`, verb, rem, tt.expectedVerb, tt.expectedRem)
 			}
