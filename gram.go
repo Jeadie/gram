@@ -6,6 +6,10 @@ import (
 )
 
 func main() {
+	if len(os.Args) < 2 {
+		fmt.Fprintf(os.Stderr, "No file was specified. Usage: `gram <FILENAME>`")
+		return
+	}
 	filename := os.Args[1]
 	e, err := ConstructEditor(filename)
 	if err != nil {
@@ -26,6 +30,7 @@ func main() {
 	Exit(e, nil)
 }
 
+// Exit program. Required after an Editor has been constructed (i.e. ConstructEditor)
 func Exit(e Editor, err error) {
 	closeErr := e.Close()
 	fmt.Println("\x1b[2J")
