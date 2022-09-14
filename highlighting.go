@@ -60,7 +60,7 @@ func doCprintfParse(x string) string {
 		v, exists := AllowedColours[s]
 		if exists {
 			if i+2 >= len(sections) {
-				panic("Bad")
+				panic("Bad") // TODO: handle errors properly.
 			}
 			text := sections[i+1]
 			result = append(result, C(text, v))    // Coloured content
@@ -93,6 +93,7 @@ func doCprintfParse(x string) string {
 }
 
 func ExtractPrintfVerb(t string) (string, string) {
+	// TODO: Implement this better.
 	if len(t) == 0 {
 		return "", ""
 	}
