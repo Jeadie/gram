@@ -120,7 +120,8 @@ func (e *Editor) DrawRows() {
 	}
 
 	for _, r := range e.rows[e.rowOffset : e.rowOffset+nRows] {
-		fmt.Printf("%s\r\n", r.RenderWithin(e.colOffset, e.wCols-e.colOffset))
+		l := r.RenderWithin(e.colOffset, e.wCols-e.colOffset)
+		fmt.Printf("%s\r\n", SimpleGolangSyntax(l))
 	}
 	e.DrawEmptyRows(r - nRows)
 	e.DrawStatusBar()

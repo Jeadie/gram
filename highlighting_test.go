@@ -91,3 +91,73 @@ func TestExtractPrintfVerb(t *testing.T) {
 		})
 	}
 }
+
+func TestAllIndices(t *testing.T) {
+	type testParam struct {
+		s, sub, description string
+		expectedOutput      []int
+	}
+	tests := []testParam{{
+		s:              "func TestAllIndices(t *testing.T) {",
+		sub:            "function",
+		description:    "substring no present",
+		expectedOutput: []int{},
+	}, {
+		s:              " func TestAllIndices(t *testing.T) {",
+		sub:            "func",
+		description:    "Find initial string",
+		expectedOutput: []int{1},
+	}, {
+		s:              "func TestAllIndices(t *testing.T) {",
+		sub:            "TestAllIndices",
+		description:    "Find substring within",
+		expectedOutput: []int{5},
+	}, {
+		s:              "func AllWordIndices(s string, sub string) []int {",
+		sub:            "string",
+		description:    "Find multiple indices",
+		expectedOutput: []int{18, 30},
+	}, {
+		s:              "func AllWordIndices(s stringstring) []int {",
+		sub:            "string",
+		description:    "Find multiple indices",
+		expectedOutput: []int{18, 24},
+	}}
+
+	for _, tt := range tests {
+		t.Run(tt.description, func(t *testing.T) {
+			output := AllWordIndices(tt.s, tt.sub)
+			if len(output) != len(tt.expectedOutput) {
+				t.Errorf("Expected %d. Received %d", tt.expectedOutput, output)
+			}
+
+			for i := range tt.expectedOutput {
+				if output[i] != tt.expectedOutput[i] {
+					t.Errorf("Expected %d. Received %d", tt.expectedOutput, output)
+				}
+			}
+		})
+	}
+}
+
+func TestApplyColours(t *testing.T) {
+	type testParam struct {
+		s, expectedOutput, description string
+		highlight                      []Colour
+	}
+
+	tests := []testParam{{
+		s:              "This is a string.",
+		highlight:      make([]Colour, len("This is a string.")),
+		expectedOutput: "This is a string.",
+		description:    "No highlights",
+	}}
+	for _, tt := range tests {
+		t.Run(tt.description, func(t *testing.T) {
+			output := ApplyColours(tt.s, tt.highlight)
+			if output != tt.expectedOutput {
+				t.Errorf("Expected %s. Received %s.", tt.expectedOutput, output)
+			}
+		})
+	}
+}
