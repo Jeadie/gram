@@ -453,9 +453,23 @@ func (e *Editor) RunSearch() (uint, uint) {
 
 	}
 
+	// Read search results and let user go through results.
 	for r := range SearchRows(e.rows, string(q)) {
-		e.MoveCursor(r.startI, r.rowI)
-		return r.startI, r.rowI
+		e.MoveCursor(r.startI+1, r.rowI+1)
+
+		// Blocking read on input.
+		b = e.ReadChar()
+		for b == 0x00 {
+			b = e.ReadChar()
+		}
+
+		if b == SEARCH {
+			return r.startI, r.rowI // Exit search mode
+		} else if b == ENTER {
+			continue // Go to next search term
+		} else {
+			break // Leave search, back to original cursor.
+		}
 	}
 
 	// Default back to current position
