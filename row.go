@@ -28,6 +28,20 @@ func (r Row) Export() []byte {
 	return append(r.src, '\n')
 }
 
+// RenderWithin from constraints of, starting from offset index, and being no larger than max.
+func (r Row) RenderWithin(offset, max uint) string {
+	l := r.Render()
+	if offset > uint(len(l)) {
+		return ""
+	}
+
+	if uint(len(l)) > max+offset {
+		return l[offset : offset+max]
+	} else {
+		return l[offset:]
+	}
+}
+
 func (r Row) Render() string {
 	srcStr := string(r.src)
 	return strings.ReplaceAll(srcStr, "\t", "    ")

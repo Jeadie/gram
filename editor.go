@@ -126,15 +126,7 @@ func (e *Editor) DrawRows() {
 	e.DrawStatusBar()
 }
 func (e *Editor) DrawRow(r Row) string {
-	l := r.Render()
-	lLen := uint(len(l)) - e.colOffset
-	if e.colOffset > uint(len(l)) {
-		return ""
-	} else if lLen > e.wCols {
-		return l[e.colOffset : e.colOffset+e.wCols]
-	} else {
-		return l[e.colOffset:]
-	}
+	return r.RenderWithin(e.colOffset, e.wCols-e.colOffset)
 }
 
 func (e *Editor) DrawEmptyRows(r uint) {
