@@ -119,14 +119,11 @@ func (e *Editor) DrawRows() {
 		nRows = e.GetEditorRows()
 	}
 
-	for i := uint(0); i < nRows; i++ {
-		fmt.Printf("%s\r\n", e.DrawRow(e.rows[i+e.rowOffset]))
+	for _, r := range e.rows[e.rowOffset : e.rowOffset+nRows] {
+		fmt.Printf("%s\r\n", r.RenderWithin(e.colOffset, e.wCols-e.colOffset))
 	}
 	e.DrawEmptyRows(r - nRows)
 	e.DrawStatusBar()
-}
-func (e *Editor) DrawRow(r Row) string {
-	return r.RenderWithin(e.colOffset, e.wCols-e.colOffset)
 }
 
 func (e *Editor) DrawEmptyRows(r uint) {
