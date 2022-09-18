@@ -20,7 +20,15 @@ func CreateSyntax(filename string) *Syntax {
 }
 
 func (s *Syntax) Highlight(x string) string {
-	return SimpleGolangSyntax(x)
+	v, exists := s.cache.Get(x)
+	if exists {
+		return v
+	}
+
+	// Cache miss
+	v = SimpleGolangSyntax(x)
+	s.cache.Set(x, v)
+	return v
 }
 
 type LanguageSyntax struct {
