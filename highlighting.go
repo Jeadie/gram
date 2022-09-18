@@ -32,15 +32,17 @@ const (
 )
 
 type LanguageSyntax struct {
-	exts     []string
-	keywords []string
-	comment  string
+	exts        []string
+	keywords    []string
+	stringChars []byte
+	comment     string
 }
 
 var goSyntax = LanguageSyntax{
-	exts:     []string{".go"},
-	keywords: []string{"uint", "import", "package", "const", "var", "func", "map", "string", "byte", "struct", "int", "any", "error", "type", "continue", "break", "append", "if", "len", "return", "else"},
-	comment:  "//",
+	exts:        []string{".go"},
+	keywords:    []string{"uint", "import", "package", "const", "var", "func", "map", "string", "byte", "struct", "int", "any", "error", "type", "continue", "break", "append", "if", "len", "return", "else"},
+	comment:     "//",
+	stringChars: []byte{'"', '\'', '`'},
 }
 
 var AllowedColours = map[string]Colour{"Black": Black, "Default": Default, "Red": Red, "DarkRed": DarkRed, "Green": Green, "DarkGreen": DarkGreen, "DarkYellow": DarkYellow, "Orange": Orange, "Blue": Blue, "DarkBlue": DarkBlue, "Cyan": Cyan, "Magenta": Magenta, "DarkMagenta": DarkMagenta, "DarkCyan": DarkCyan, "LightGray": LightGray, "DarkGray": DarkGray, "White": White}
@@ -130,7 +132,14 @@ func SimpleGolangSyntax(s string) string {
 		}
 	}
 
-	// TODO: Strings
+	for _, b := range goSyntax.stringChars {
+		re, _ = regexp.Compile(fmt.Sprintf("%s.*%s", string(b), string(b)))
+		for _, idx := range re.FindAllIndex([]byte(s), -1) {
+			for i := idx[0]; i < idx[1]; i++ {
+				hl[i] = DarkGreen
+			}
+		}
+	}
 
 	return ApplyColours(s, hl)
 }
