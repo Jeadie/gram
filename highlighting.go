@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 	"unicode"
 )
@@ -122,9 +123,14 @@ func SimpleGolangSyntax(s string) string {
 		}
 	}
 
-	// TODO: Strings
+	re, _ := regexp.Compile("[-]?\\d[\\d,]*[\\.]?[\\d{2}]*")
+	for _, idx := range re.FindAllIndex([]byte(s), -1) {
+		for i := idx[0]; i < idx[1]; i++ {
+			hl[i] = Blue
+		}
+	}
 
-	// TODO: ints/floats
+	// TODO: Strings
 
 	return ApplyColours(s, hl)
 }
