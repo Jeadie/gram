@@ -125,23 +125,24 @@ func SimpleGolangSyntax(s string) string {
 		}
 	}
 
-	re, _ := regexp.Compile("[-]?\\d[\\d,]*[\\.]?[\\d{2}]*")
-	for _, idx := range re.FindAllIndex([]byte(s), -1) {
-		for i := idx[0]; i < idx[1]; i++ {
-			hl[i] = Blue
-		}
-	}
+	// Numbers
+	HighlightRegex(s, "[-]?\\d[\\d,]*[\\.]?[\\d{2}]*", &hl, Blue)
 
+	// Strings
 	for _, b := range goSyntax.stringChars {
-		re, _ = regexp.Compile(fmt.Sprintf("%s.*%s", string(b), string(b)))
-		for _, idx := range re.FindAllIndex([]byte(s), -1) {
-			for i := idx[0]; i < idx[1]; i++ {
-				hl[i] = DarkGreen
-			}
-		}
+		HighlightRegex(s, fmt.Sprintf("%s.*%s", string(b), string(b)), &hl, DarkGreen)
 	}
 
 	return ApplyColours(s, hl)
+}
+
+func HighlightRegex(s, regex string, hl *[]Colour, c Colour) {
+	re, _ := regexp.Compile(regex)
+	for _, idx := range re.FindAllIndex([]byte(s), -1) {
+		for i := idx[0]; i < idx[1]; i++ {
+			(*hl)[i] = c
+		}
+	}
 }
 
 // ApplyColours per character, onto a string.
