@@ -7,6 +7,22 @@ import (
 	"unicode"
 )
 
+type Syntax struct {
+	l     LanguageSyntax
+	cache LRUCache
+}
+
+func CreateSyntax(filename string) *Syntax {
+	return &Syntax{
+		l:     goSyntax,
+		cache: *CreateCache(100),
+	}
+}
+
+func (s *Syntax) Highlight(x string) string {
+	return SimpleGolangSyntax(x)
+}
+
 type LanguageSyntax struct {
 	exts        []string
 	keywords    []string

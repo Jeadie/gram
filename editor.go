@@ -40,6 +40,7 @@ type Editor struct {
 	filename             string
 	charHistory          ByteRing
 	cmdHistory           *CommandHistory
+	syntax               *Syntax
 }
 
 func ConstructEditor(filename string) (Editor, error) {
@@ -59,6 +60,7 @@ func ConstructEditor(filename string) (Editor, error) {
 		rows:        rows,
 		charHistory: CreateByteRing(10),
 		cmdHistory:  CreateCommandHistory(),
+		syntax:      CreateSyntax(filename),
 	}
 	e.GetWindowSize()
 	return e, nil
@@ -121,7 +123,7 @@ func (e *Editor) DrawRows() {
 
 	for _, r := range e.rows[e.rowOffset : e.rowOffset+nRows] {
 		l := r.RenderWithin(e.colOffset, e.wCols-e.colOffset)
-		fmt.Printf("%s\r\n", SimpleGolangSyntax(l))
+		fmt.Printf("%s\r\n", e.syntax.Highlight(l))
 	}
 	e.DrawEmptyRows(r - nRows)
 	e.DrawStatusBar()
