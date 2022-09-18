@@ -115,6 +115,7 @@ func SimpleGolangSyntax(s string) string {
 	HighlightRegex(s, "[-]?\\d[\\d,]*[\\.]?[\\d{2}]*", &hl, Blue)
 
 	// Strings
+	// TODO: Fix Multiple strings in same line interpolating incorrectly
 	for _, b := range goSyntax.stringChars {
 		HighlightRegex(s, fmt.Sprintf("%s.*%s", string(b), string(b)), &hl, DarkGreen)
 	}
