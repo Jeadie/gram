@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"regexp"
 	"strings"
 	"unicode"
@@ -117,10 +116,24 @@ func SimpleGolangSyntax(s string) string {
 	// Strings
 	// TODO: Fix Multiple strings in same line interpolating incorrectly
 	for _, b := range goSyntax.stringChars {
-		HighlightRegex(s, fmt.Sprintf("%s.*%s", string(b), string(b)), &hl, DarkGreen)
+		HighlightString(s, string(b), &hl, DarkGreen)
 	}
 
 	return ApplyColours(s, hl)
+}
+
+func HighlightString(s, char string, hl *[]Colour, c Colour) {
+	re, _ := regexp.Compile(char)
+	results := re.FindAllIndex([]byte(s), -1)
+
+	//  Every second result to avoid highlighting between strings.
+	for j := 0; j < len(results); j += 2 {
+		idx := results[j]
+		idx2 := results[j+1]
+		for i := idx[0]; i <= idx2[0]; i++ {
+			(*hl)[i] = c
+		}
+	}
 }
 
 func HighlightRegex(s, regex string, hl *[]Colour, c Colour) {
