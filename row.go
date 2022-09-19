@@ -82,11 +82,15 @@ func (r *Row) RemoveCharAt(renderI uint) {
 }
 
 func (r *Row) AddCharAt(renderI uint, b byte) {
+	r.AddCharsAt(renderI, string(b))
+}
+
+func (r *Row) AddCharsAt(renderI uint, s string) {
 	j := r.getSrcIndex(renderI)
 
 	x := r.src[:j]
 	y := r.src[j:]
-	z := strings.Join([]string{string(x), string(y)}, string(b))
+	z := strings.Join([]string{string(x), string(y)}, s)
 	r.src = []byte(z)
 }
 

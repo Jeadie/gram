@@ -211,6 +211,10 @@ func (e *Editor) KeyPress() bool {
 
 	case COPY:
 		e.paste = e.RunCopy()
+	case PASTE:
+		if len(e.paste) > 0 {
+			e.GetCurrentRow().AddCharsAt(e.cx, e.paste)
+		}
 	}
 
 	if !isControlChar(x) {
