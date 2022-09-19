@@ -436,7 +436,19 @@ func (e *Editor) Save() error {
 func (e *Editor) HandleOtherEscapedCmds(c Cmd) {
 	switch c {
 	case DELETE:
-		e.GetCurrentRow().RemoveCharAt(e.cx + 1)
+		row := e.GetCurrentRow()
+		rowL := uint(len(row.Render()))
+
+		safeToJoinRow := e.cy+1 < e.GetDocumentRows()
+
+		if e.cx+1 < rowL {
+			row.RemoveCharAt(e.cx + 1)
+		} else if rowL == 1 {
+			row.RemoveCharAt(0)
+		} else if (e.cx == rowL || rowL == 0) && safeToJoinRow {
+			e.JoinRows(e.cy, e.cy+1)
+			//e.RemoveCurrentRow()
+		}
 	}
 }
 

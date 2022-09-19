@@ -127,7 +127,7 @@ func HighlightString(s, char string, hl *[]Colour, c Colour) {
 	results := re.FindAllIndex([]byte(s), -1)
 
 	//  Every second result to avoid highlighting between strings.
-	for j := 0; j < len(results); j += 2 {
+	for j := 0; j+1 < len(results); j += 2 {
 		idx := results[j]
 		idx2 := results[j+1]
 		for i := idx[0]; i <= idx2[0]; i++ {
