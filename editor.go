@@ -29,6 +29,8 @@ const (
 	ENTER     = 13
 	SEARCH    = 6  // Ctrl-F on Mac OS
 	UNDO      = 26 // Ctrl-X on Mac OS
+	COPY      = 3  // Ctrl-C on Mac OS
+	PASTE     = 22 // Ctrl-V on Mac OS
 )
 
 type Editor struct {
@@ -41,6 +43,7 @@ type Editor struct {
 	charHistory          ByteRing
 	cmdHistory           *CommandHistory
 	syntax               *Syntax
+	paste                string
 }
 
 func ConstructEditor(filename string) (Editor, error) {
@@ -61,6 +64,7 @@ func ConstructEditor(filename string) (Editor, error) {
 		charHistory: CreateByteRing(10),
 		cmdHistory:  CreateCommandHistory(),
 		syntax:      CreateSyntax(filename),
+		paste:       "",
 	}
 	e.GetWindowSize()
 	return e, nil
@@ -94,8 +98,12 @@ func (e *Editor) GetWindowSize() (uint, uint) {
 	return e.wRows, e.wCols
 }
 
+func (e *Editor) GetRow(y uint) *Row {
+	return &e.rows[y]
+}
+
 func (e *Editor) GetCurrentRow() *Row {
-	return &e.rows[e.cy]
+	return e.GetRow(e.cy)
 }
 
 func (e *Editor) GetRowLength() uint {
@@ -158,6 +166,17 @@ func (e *Editor) ReadChar() byte {
 	return c[0]
 }
 
+func (e *Editor) ReadCharBlock() byte {
+	c := make([]byte, 1)
+	cs, _ := os.Stdin.Read(c)
+	for cs != 0 {
+		cs, _ = os.Stdin.Read(c)
+	}
+
+	e.charHistory.Insert(c[0])
+	return c[0]
+}
+
 func (e *Editor) KeyPress() bool {
 	x := e.ReadChar()
 	switch x {
@@ -190,6 +209,9 @@ func (e *Editor) KeyPress() bool {
 
 	case UNDO:
 		e.cmdHistory.Undo(e)
+
+		//case COPY:
+		//	e.paste = e.RunCopy()
 	}
 
 	if !isControlChar(x) {
@@ -379,7 +401,7 @@ func (e *Editor) DrawStatusBar() {
 	y, x := e.GetWindowSize()
 	r := e.GetCurrentRow()
 	h := e.cmdHistory.Depth()
-	Cprintf("%DarkBlue%STATUS BAR --% (%Blue.d, %Blue.d) of (%Magenta.d, %Magenta.d) %v. Row: %d. History: %d", e.cx, e.cy, x, y, e.charHistory.GetHistory(), r.RenderLen(), h)
+	Cprintf("%DarkBlue%STATUS BAR --% (%Blue.d, %Blue.d) of (%Magenta.d, %Magenta.d) %v. Row: %d. History: %d. Copy: %s", e.cx, e.cy, x, y, e.charHistory.GetHistory(), r.RenderLen(), h, e.paste)
 }
 
 func (e *Editor) Close() error {
@@ -494,4 +516,51 @@ func (e *Editor) JoinRows(a, b uint) {
 	} else {
 		e.rows = e.rows[:b]
 	}
+}
+
+func (e *Editor) RunCopy() string {
+	sx, sy := e.cx, e.cy
+	ex, ey := e.GetCopyEndCoordinates()
+	return e.GetStringBetween(sx, sy, ex, ey)
+}
+
+func (e *Editor) GetCopyEndCoordinates() (uint, uint) {
+	x := e.ReadCharBlock()
+	cmd := e.HandleEscapeCode()
+	e.paste += string(cmd)
+	// TODO: Use copy-specific equaivalent of HandleEscapeCode to avoid side effects/ changes. And below
+	if x != '\x1b' || cmd == DELETE { // DELETE is only none-move Cmd from HandleEscapeCode
+		return e.cx, e.cy
+	}
+	for x != '\x1b' { // '\x1b' is first byte of all movement Cmds.
+		e.HandleMoveCursor(cmd)
+		e.paste += string(cmd)
+		x := e.ReadCharBlock()
+		cmd := e.HandleEscapeCode()
+
+		if x != '\x1b' || cmd == DELETE {
+			break
+		}
+	}
+
+	return e.cx, e.cy
+}
+
+func (e *Editor) GetStringBetween(sx uint, sy uint, ex uint, ey uint) string {
+
+	// Invalid start, end cursors.
+	if sy > ey || (sy == ey && sx > ex) {
+		return ""
+	}
+	if sy == ey {
+		return e.GetRow(sy).Render()[sx:ex]
+	}
+
+	result := e.GetRow(sy).Render()[sx:]
+	for i := sy + 1; i+1 < ey; i++ {
+		result += e.GetRow(sy).Render()
+	}
+	result += e.GetRow(ey).Render()[:ex]
+
+	return result
 }
