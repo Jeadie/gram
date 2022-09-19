@@ -11,25 +11,6 @@ type Syntax struct {
 	cache LRUCache
 }
 
-func CreateSyntax(filename string) *Syntax {
-	return &Syntax{
-		l:     goSyntax,
-		cache: *CreateCache(100),
-	}
-}
-
-func (s *Syntax) Highlight(x string) string {
-	v, exists := s.cache.Get(x)
-	if exists {
-		return v
-	}
-
-	// Cache miss
-	v = SimpleGolangSyntax(x)
-	s.cache.Set(x, v)
-	return v
-}
-
 type LanguageSyntax struct {
 	exts        []string
 	keywords    []string
@@ -42,6 +23,53 @@ var goSyntax = LanguageSyntax{
 	keywords:    []string{"uint", "import", "package", "const", "var", "func", "map", "string", "byte", "struct", "int", "any", "error", "type", "continue", "break", "append", "if", "len", "return", "else"},
 	comment:     "//",
 	stringChars: []byte{'"', '\'', '`'},
+}
+var defaultSyntax = LanguageSyntax{
+	exts:        []string{""},
+	keywords:    []string{},
+	comment:     "#",
+	stringChars: []byte{'"'},
+}
+
+var syntaxs = []LanguageSyntax{goSyntax}
+
+func CreateSyntax(filename string) *Syntax {
+	return &Syntax{
+		l:     GetLanguageSyntax(filename),
+		cache: *CreateCache(100),
+	}
+}
+
+// Highlight string according to a given highlighting syntax
+func (s *Syntax) Highlight(x string) string {
+	v, exists := s.cache.Get(x)
+	if exists {
+		return v
+	}
+
+	// Cache miss
+	v = s.ApplySyntax(x)
+	s.cache.Set(x, v)
+	return v
+}
+
+// GetLanguageSyntax of file based on filename.
+func GetLanguageSyntax(filename string) LanguageSyntax {
+	for _, syntax := range syntaxs {
+		if FileHasExtension(filename, syntax.exts) {
+			return syntax
+		}
+	}
+	return defaultSyntax
+}
+
+func FileHasExtension(filename string, exts []string) bool {
+	for _, ext := range exts {
+		if strings.HasSuffix(filename, ext) {
+			return true
+		}
+	}
+	return false
 }
 
 // AllWordIndices returns all indices of a subword within a larger string.
@@ -82,12 +110,12 @@ func isWord(s string, start, end int) bool {
 	return true
 }
 
-func SimpleGolangSyntax(s string) string {
-	hl := make([]Colour, len(s))
+func (s *Syntax) ApplySyntax(x string) string {
+	hl := make([]Colour, len(x))
 
 	// Keyword highlights
-	for _, k := range goSyntax.keywords {
-		for _, idx := range AllWordIndices(s, k) {
+	for _, k := range s.l.keywords {
+		for _, idx := range AllWordIndices(x, k) {
 			for i := 0; i < len(k); i++ {
 				hl[idx+i] = Orange
 			}
@@ -95,31 +123,31 @@ func SimpleGolangSyntax(s string) string {
 	}
 
 	// Comments
-	cIdx := strings.Index(s, goSyntax.comment)
+	cIdx := strings.Index(x, s.l.comment)
 	if cIdx != -1 {
-		for i := cIdx; i < len(s); i++ {
+		for i := cIdx; i < len(x); i++ {
 			hl[i] = DarkGray
 		}
 	}
 
 	// TODOs
-	toDoIdx := strings.Index(s, goSyntax.comment+" TODO")
+	toDoIdx := strings.Index(x, s.l.comment+" TODO")
 	if toDoIdx != -1 {
-		for i := toDoIdx + len(goSyntax.comment); i < len(s); i++ {
+		for i := toDoIdx + len(s.l.comment); i < len(x); i++ {
 			hl[i] = DarkYellow
 		}
 	}
 
 	// Numbers
-	HighlightRegex(s, "[-]?\\d[\\d,]*[\\.]?[\\d{2}]*", &hl, Blue)
+	HighlightRegex(x, "[-]?\\d[\\d,]*[\\.]?[\\d{2}]*", &hl, Blue)
 
 	// Strings
 	// TODO: Fix Multiple strings in same line interpolating incorrectly
-	for _, b := range goSyntax.stringChars {
-		HighlightString(s, string(b), &hl, DarkGreen)
+	for _, b := range s.l.stringChars {
+		HighlightString(x, string(b), &hl, DarkGreen)
 	}
 
-	return ApplyColours(s, hl)
+	return ApplyColours(x, hl)
 }
 
 func HighlightString(s, char string, hl *[]Colour, c Colour) {
@@ -143,42 +171,4 @@ func HighlightRegex(s, regex string, hl *[]Colour, c Colour) {
 			(*hl)[i] = c
 		}
 	}
-}
-
-// ApplyColours per character, onto a string.
-func ApplyColours(s string, hl []Colour) string {
-	if len(s) == 0 {
-		return ""
-	} else if len(s) != len(hl) {
-		return s
-	}
-
-	result := ""
-
-	currI := 0 // Start of current highlight segment
-	currC := hl[0]
-
-	for i, c := range hl {
-		// Highlighting has changed, apply previous
-		if c != currC {
-			//fmt.Println(currI, i, currC)
-			if currC != "" {
-				result += C(s[currI:i], currC)
-			} else {
-				result += s[currI:i]
-			}
-
-			currI = i
-			currC = c
-		}
-	}
-	if currI+1 != len(s) {
-		if currC != "" {
-			result += C(s[currI:], currC)
-		} else {
-			result += s[currI:]
-		}
-	}
-
-	return result
 }

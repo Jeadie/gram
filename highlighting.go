@@ -116,3 +116,41 @@ func extractPrintfVerb(t string) (string, string) {
 	}
 	return "", ""
 }
+
+// ApplyColours per character, onto a string.
+func ApplyColours(s string, hl []Colour) string {
+	if len(s) == 0 {
+		return ""
+	} else if len(s) != len(hl) {
+		return s
+	}
+
+	result := ""
+
+	currI := 0 // Start of current highlight segment
+	currC := hl[0]
+
+	for i, c := range hl {
+		// Highlighting has changed, apply previous
+		if c != currC {
+			//fmt.Println(currI, i, currC)
+			if currC != "" {
+				result += C(s[currI:i], currC)
+			} else {
+				result += s[currI:i]
+			}
+
+			currI = i
+			currC = c
+		}
+	}
+	if currI+1 != len(s) {
+		if currC != "" {
+			result += C(s[currI:], currC)
+		} else {
+			result += s[currI:]
+		}
+	}
+
+	return result
+}
