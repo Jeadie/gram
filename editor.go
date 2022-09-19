@@ -169,10 +169,9 @@ func (e *Editor) ReadChar() byte {
 func (e *Editor) ReadCharBlock() byte {
 	c := make([]byte, 1)
 	cs, _ := os.Stdin.Read(c)
-	for cs != 0 {
+	for cs == 0 && c[0] == 0x00 {
 		cs, _ = os.Stdin.Read(c)
 	}
-
 	e.charHistory.Insert(c[0])
 	return c[0]
 }
@@ -210,8 +209,8 @@ func (e *Editor) KeyPress() bool {
 	case UNDO:
 		e.cmdHistory.Undo(e)
 
-		//case COPY:
-		//	e.paste = e.RunCopy()
+	case COPY:
+		e.paste = e.RunCopy()
 	}
 
 	if !isControlChar(x) {
@@ -539,16 +538,17 @@ func (e *Editor) RunCopy() string {
 func (e *Editor) GetCopyEndCoordinates() (uint, uint) {
 	x := e.ReadCharBlock()
 	cmd := e.HandleEscapeCode()
-	e.paste += string(cmd)
+
 	// TODO: Use copy-specific equaivalent of HandleEscapeCode to avoid side effects/ changes. And below
 	if x != '\x1b' || cmd == DELETE { // DELETE is only none-move Cmd from HandleEscapeCode
 		return e.cx, e.cy
 	}
-	for x != '\x1b' { // '\x1b' is first byte of all movement Cmds.
+	for true {
 		e.HandleMoveCursor(cmd)
-		e.paste += string(cmd)
-		x := e.ReadCharBlock()
-		cmd := e.HandleEscapeCode()
+		e.ShowCursor()
+
+		x = e.ReadCharBlock()
+		cmd = e.HandleEscapeCode()
 
 		if x != '\x1b' || cmd == DELETE {
 			break
