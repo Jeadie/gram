@@ -25,12 +25,13 @@ const (
 	SHIFT_LEFT      = 1010
 
 	// Specific ANSI mappings
-	BACKSPACE = 127
-	ENTER     = 13
-	SEARCH    = 6  // Ctrl-F on Mac OS
-	UNDO      = 26 // Ctrl-X on Mac OS
-	COPY      = 3  // Ctrl-C on Mac OS
-	PASTE     = 22 // Ctrl-V on Mac OS
+	BACKSPACE  = 127
+	ENTER      = 13
+	SEARCH     = 6  // Ctrl-F on Mac OS
+	UNDO       = 26 // Ctrl-X on Mac OS
+	COPY       = 3  // Ctrl-C on Mac OS
+	PASTE      = 22 // Ctrl-V on Mac OS
+	DELETE_ROW = 4  // Ctrl-D on Mac OS
 )
 
 type Editor struct {
@@ -216,6 +217,8 @@ func (e *Editor) KeyPress() bool {
 		if len(e.paste) > 0 {
 			e.GetCurrentRow().AddCharsAt(e.cx, e.paste)
 		}
+	case DELETE_ROW:
+		e.RemoveCurrentRow()
 	}
 
 	if !isControlChar(x) {

@@ -10,7 +10,6 @@ To build one yourself, visit the [tutorial](https://viewsourcecode.org/snaptoken
  - Auto-save / checkpointing
  - Handle TAB more graciously
  - Handle Unicode and discrepancies between src and rende
- - Easily delete whole line
  - Start new file
  - Optional save/don't save on exit. Save command during editing.
  - Add LRU to rendering cache to avoid memory explosion
