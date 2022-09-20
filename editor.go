@@ -497,7 +497,8 @@ func (e *Editor) RunSearch() (uint, uint) {
 	// Read search results and let user go through results.
 	for r := range SearchRows(e.rows, string(q)) {
 		// TODO: handle move cursor on page scrolling.
-		e.MoveCursor(r.startI, r.rowI)
+		e.cx = r.startI
+		e.cy = r.rowI
 		e.RefreshScreen()
 		// Blocking read on input.
 		b = e.ReadChar()

@@ -16,8 +16,8 @@ To build one yourself, visit the [tutorial](https://viewsourcecode.org/snaptoken
  - Add LRU to rendering cache to avoid memory explosion
 
 ## Bugs
- - Vertical scrolling for search
  - Saving file appends a bunch of new lines 
+
 
 
 
