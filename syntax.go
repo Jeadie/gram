@@ -18,6 +18,13 @@ type LanguageSyntax struct {
 	comment     string
 }
 
+var pythonSyntax = LanguageSyntax{
+	exts:        []string{".py"},
+	keywords:    []string{"False", "None", "True", "and", "as", "assert", "async", "await", "break", "class", "continue", "def", "del", "elif", "else", "except", "finally", "for", "from", "global", "if", "import", "in", "is", "lambda", "nonlocal", "not", "or", "pass", "raise", "return", "try", "while", "with", "yield"},
+	comment:     "#",
+	stringChars: []byte{'"', '\''},
+}
+
 var goSyntax = LanguageSyntax{
 	exts:        []string{".go"},
 	keywords:    []string{"uint", "import", "package", "const", "var", "func", "map", "string", "byte", "struct", "int", "any", "error", "type", "continue", "break", "append", "if", "len", "return", "else"},
@@ -31,7 +38,7 @@ var defaultSyntax = LanguageSyntax{
 	stringChars: []byte{'"'},
 }
 
-var syntaxs = []LanguageSyntax{goSyntax}
+var syntaxs = []LanguageSyntax{goSyntax, pythonSyntax}
 
 func CreateSyntax(filename string) *Syntax {
 	return &Syntax{
