@@ -133,7 +133,6 @@ func ApplyColours(s string, hl []Colour) string {
 	for i, c := range hl {
 		// Highlighting has changed, apply previous
 		if c != currC {
-			//fmt.Println(currI, i, currC)
 			if currC != "" {
 				result += C(s[currI:i], currC)
 			} else {
@@ -144,12 +143,11 @@ func ApplyColours(s string, hl []Colour) string {
 			currC = c
 		}
 	}
-	if currI+1 != len(s) {
-		if currC != "" {
-			result += C(s[currI:], currC)
-		} else {
-			result += s[currI:]
-		}
+
+	if currC != "" {
+		result += C(s[currI:], currC)
+	} else {
+		result += s[currI:]
 	}
 
 	return result
