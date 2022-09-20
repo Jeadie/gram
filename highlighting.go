@@ -133,22 +133,13 @@ func ApplyColours(s string, hl []Colour) string {
 	for i, c := range hl {
 		// Highlighting has changed, apply previous
 		if c != currC {
-			if currC != "" {
-				result += C(s[currI:i], currC)
-			} else {
-				result += s[currI:i]
-			}
-
+			result += C(s[currI:i], currC)
 			currI = i
 			currC = c
 		}
 	}
-
-	if currC != "" {
-		result += C(s[currI:], currC)
-	} else {
-		result += s[currI:]
-	}
+	// Final un/coloured section
+	result += C(s[currI:], currC)
 
 	return result
 }
