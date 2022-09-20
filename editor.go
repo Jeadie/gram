@@ -71,15 +71,17 @@ func ConstructEditor(filename string) (Editor, error) {
 }
 
 func (e *Editor) ShowCursor() {
-	e.MoveCursor((e.cx-e.colOffset)+1, (e.cy-e.rowOffset)+1)
+	e.MoveCursor(e.cx, e.cy)
 }
 
 func (e *Editor) HideCursor() {
 	fmt.Printf("\x1b[%d;%dL", (e.cy-e.rowOffset)+1, (e.cx-e.colOffset)+1)
 }
 
+// MoveCursor to document coordinates (x, y).
 func (e *Editor) MoveCursor(x, y uint) {
-	fmt.Printf("\x1b[%d;%dH", y, x)
+	e.SetScroll()
+	fmt.Printf("\x1b[%d;%dH", (y-e.rowOffset)+1, (x-e.colOffset)+1)
 }
 
 func (e *Editor) MoveCursorToStatusBar() {
@@ -120,7 +122,6 @@ func (e *Editor) GetDocumentRows() uint {
 
 func (e *Editor) DrawRows() {
 	e.ClearLine()
-
 	r := e.GetEditorRows()
 
 	// Leave room for status bar
@@ -496,8 +497,8 @@ func (e *Editor) RunSearch() (uint, uint) {
 	// Read search results and let user go through results.
 	for r := range SearchRows(e.rows, string(q)) {
 		// TODO: handle move cursor on page scrolling.
-		e.MoveCursor(r.startI+1, r.rowI+1)
-
+		e.MoveCursor(r.startI, r.rowI)
+		e.RefreshScreen()
 		// Blocking read on input.
 		b = e.ReadChar()
 		for b == 0x00 {
