@@ -32,6 +32,7 @@ const (
 	COPY       = 3  // Ctrl-C on Mac OS
 	PASTE      = 22 // Ctrl-V on Mac OS
 	DELETE_ROW = 4  // Ctrl-D on Mac OS
+	SAVE       = 19 // Ctrl-S on Mac OS
 )
 
 type Editor struct {
@@ -219,6 +220,9 @@ func (e *Editor) KeyPress() bool {
 		}
 	case DELETE_ROW:
 		e.RemoveCurrentRow()
+
+	case SAVE:
+		e.Save()
 	}
 
 	if !isControlChar(x) {
