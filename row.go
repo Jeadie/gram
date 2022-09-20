@@ -25,7 +25,7 @@ func (r Row) SplitAt(i uint) (*Row, *Row) {
 }
 
 func (r Row) Export() []byte {
-	return append(r.src, '\n')
+	return append(r.src)
 }
 
 // RenderWithin from constraints of, starting from offset index, and being no larger than max.

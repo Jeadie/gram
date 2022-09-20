@@ -433,10 +433,14 @@ func (e *Editor) Save() error {
 		return err
 	}
 
-	for _, row := range e.rows {
+	noOfRows := len(e.rows)
+	for i, row := range e.rows {
 		_, err := f.Write(row.Export())
 		if err != nil {
 			return err
+		}
+		if i+1 < noOfRows {
+			f.Write([]byte{'\n'})
 		}
 	}
 	return nil
