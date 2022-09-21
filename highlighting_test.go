@@ -116,12 +116,12 @@ func TestAllIndices(t *testing.T) {
 		s:              "func AllWordIndices(s string, sub string) []int {",
 		sub:            "string",
 		description:    "Find multiple indices",
-		expectedOutput: []int{18, 30},
+		expectedOutput: []int{22, 34},
 	}, {
 		s:              "func AllWordIndices(s stringstring) []int {",
 		sub:            "string",
-		description:    "Find multiple indices",
-		expectedOutput: []int{18, 24},
+		description:    "sub is not a subword",
+		expectedOutput: []int{},
 	}}
 
 	for _, tt := range tests {
@@ -149,7 +149,7 @@ func TestApplyColours(t *testing.T) {
 	tests := []testParam{{
 		s:              "This is a string.",
 		highlight:      make([]Colour, len("This is a string.")),
-		expectedOutput: "This is a string.",
+		expectedOutput: "This is a string.\u001B[0m", // Unneeded colour escape is okay.
 		description:    "No highlights",
 	}}
 	for _, tt := range tests {

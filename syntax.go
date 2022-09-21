@@ -1,6 +1,9 @@
 package main
 
 import (
+	"encoding/json"
+	"fmt"
+	"os"
 	"regexp"
 	"strings"
 	"unicode"
@@ -12,42 +15,22 @@ type Syntax struct {
 }
 
 type LanguageSyntax struct {
-	exts        []string
-	keywords    []string
-	stringChars []byte
-	comment     string
-	hlStrings   bool
-	hlNumbers   bool
-}
-
-var pythonSyntax = LanguageSyntax{
-	exts:        []string{".py"},
-	keywords:    []string{"False", "None", "True", "and", "as", "assert", "async", "await", "break", "class", "continue", "def", "del", "elif", "else", "except", "finally", "for", "from", "global", "if", "import", "in", "is", "lambda", "nonlocal", "not", "or", "pass", "raise", "return", "try", "while", "with", "yield"},
-	comment:     "#",
-	stringChars: []byte{'"', '\''},
-	hlStrings:   true,
-	hlNumbers:   true,
-}
-
-var goSyntax = LanguageSyntax{
-	exts:        []string{".go"},
-	keywords:    []string{"bool", "uint", "import", "package", "const", "var", "func", "map", "string", "byte", "struct", "int", "any", "error", "type", "continue", "break", "append", "if", "len", "return", "else"},
-	comment:     "//",
-	stringChars: []byte{'"', '\'', '`'},
-	hlStrings:   true,
-	hlNumbers:   true,
+	Exts        []string `json:"extensions"`
+	Keywords    []string `json:"Keywords"`
+	StringChars []string `json:"stringCharacters"`
+	Comment     string   `json:"commentCharacter"`
+	HlStrings   bool     `json:"highlightStrings"`
+	HlNumbers   bool     `json:"highlightNumbers"`
 }
 
 var defaultSyntax = LanguageSyntax{
-	exts:        []string{""},
-	keywords:    []string{},
-	comment:     "#",
-	stringChars: []byte{'"'},
-	hlNumbers:   false,
-	hlStrings:   false,
+	Exts:        []string{""},
+	Keywords:    []string{},
+	Comment:     "#",
+	StringChars: []string{"\""},
+	HlNumbers:   false,
+	HlStrings:   false,
 }
-
-var syntaxs = []LanguageSyntax{goSyntax, pythonSyntax}
 
 func CreateSyntax(filename string) *Syntax {
 	return &Syntax{
@@ -69,10 +52,25 @@ func (s *Syntax) Highlight(x string) string {
 	return v
 }
 
+func LoadSyntaxesFromFile(file string) []LanguageSyntax {
+	bytes, err := os.ReadFile(file)
+	if err != nil {
+		return []LanguageSyntax{}
+	}
+
+	var syntaxes []LanguageSyntax
+	err = json.Unmarshal(bytes, &syntaxes)
+	if err != nil {
+		panic(fmt.Errorf("%w", err))
+	}
+	return syntaxes
+}
+
 // GetLanguageSyntax of file based on filename.
 func GetLanguageSyntax(filename string) LanguageSyntax {
-	for _, syntax := range syntaxs {
-		if FileHasExtension(filename, syntax.exts) {
+	syntaxes := LoadSyntaxesFromFile("syntax.json")
+	for _, syntax := range syntaxes {
+		if FileHasExtension(filename, syntax.Exts) {
 			return syntax
 		}
 	}
@@ -130,7 +128,7 @@ func (s *Syntax) ApplySyntax(x string) string {
 	hl := make([]Colour, len(x))
 
 	// Keyword highlights
-	for _, k := range s.l.keywords {
+	for _, k := range s.l.Keywords {
 		for _, idx := range AllWordIndices(x, k) {
 			for i := 0; i < len(k); i++ {
 				hl[idx+i] = Orange
@@ -139,9 +137,9 @@ func (s *Syntax) ApplySyntax(x string) string {
 	}
 
 	// Comments
-	if len(s.l.comment) > 0 {
+	if len(s.l.Comment) > 0 {
 
-		cIdx := strings.Index(x, s.l.comment)
+		cIdx := strings.Index(x, s.l.Comment)
 		if cIdx != -1 {
 			for i := cIdx; i < len(x); i++ {
 				hl[i] = DarkGray
@@ -150,22 +148,22 @@ func (s *Syntax) ApplySyntax(x string) string {
 	}
 
 	// TODOs
-	toDoIdx := strings.Index(x, s.l.comment+" TODO")
+	toDoIdx := strings.Index(x, s.l.Comment+" TODO")
 	if toDoIdx != -1 {
-		for i := toDoIdx + len(s.l.comment); i < len(x); i++ {
+		for i := toDoIdx + len(s.l.Comment); i < len(x); i++ {
 			hl[i] = DarkYellow
 		}
 	}
 
 	// Numbers
-	if s.l.hlNumbers {
+	if s.l.HlNumbers {
 		HighlightRegex(x, "[-]?\\d[\\d,]*[\\.]?[\\d{2}]*", &hl, Blue)
 	}
 
 	// Strings
 
-	if s.l.hlStrings {
-		for _, b := range s.l.stringChars {
+	if s.l.HlStrings {
+		for _, b := range s.l.StringChars {
 			HighlightString(x, string(b), &hl, DarkGreen)
 		}
 	}
