@@ -9,8 +9,7 @@ To build one yourself, visit the [tutorial](https://viewsourcecode.org/snaptoken
  - Auto-save / checkpointing
  - Handle TAB more graciously
  - Handle Unicode and discrepancies between src and rende
- - Start new file
  - Optional save/don't save on exit.
- - Add LRU to rendering cache to avoid memory explosion
+ - Separate colour scheme from language syntax (i.e. allow users to specify colour pallete).
 
 ## Bugs
