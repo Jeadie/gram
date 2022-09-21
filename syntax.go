@@ -16,6 +16,8 @@ type LanguageSyntax struct {
 	keywords    []string
 	stringChars []byte
 	comment     string
+	hlStrings   bool
+	hlNumbers   bool
 }
 
 var pythonSyntax = LanguageSyntax{
@@ -23,19 +25,26 @@ var pythonSyntax = LanguageSyntax{
 	keywords:    []string{"False", "None", "True", "and", "as", "assert", "async", "await", "break", "class", "continue", "def", "del", "elif", "else", "except", "finally", "for", "from", "global", "if", "import", "in", "is", "lambda", "nonlocal", "not", "or", "pass", "raise", "return", "try", "while", "with", "yield"},
 	comment:     "#",
 	stringChars: []byte{'"', '\''},
+	hlStrings:   true,
+	hlNumbers:   true,
 }
 
 var goSyntax = LanguageSyntax{
 	exts:        []string{".go"},
-	keywords:    []string{"uint", "import", "package", "const", "var", "func", "map", "string", "byte", "struct", "int", "any", "error", "type", "continue", "break", "append", "if", "len", "return", "else"},
+	keywords:    []string{"bool", "uint", "import", "package", "const", "var", "func", "map", "string", "byte", "struct", "int", "any", "error", "type", "continue", "break", "append", "if", "len", "return", "else"},
 	comment:     "//",
 	stringChars: []byte{'"', '\'', '`'},
+	hlStrings:   true,
+	hlNumbers:   true,
 }
+
 var defaultSyntax = LanguageSyntax{
 	exts:        []string{""},
 	keywords:    []string{},
 	comment:     "#",
 	stringChars: []byte{'"'},
+	hlNumbers:   false,
+	hlStrings:   false,
 }
 
 var syntaxs = []LanguageSyntax{goSyntax, pythonSyntax}
@@ -130,10 +139,13 @@ func (s *Syntax) ApplySyntax(x string) string {
 	}
 
 	// Comments
-	cIdx := strings.Index(x, s.l.comment)
-	if cIdx != -1 {
-		for i := cIdx; i < len(x); i++ {
-			hl[i] = DarkGray
+	if len(s.l.comment) > 0 {
+
+		cIdx := strings.Index(x, s.l.comment)
+		if cIdx != -1 {
+			for i := cIdx; i < len(x); i++ {
+				hl[i] = DarkGray
+			}
 		}
 	}
 
@@ -146,12 +158,16 @@ func (s *Syntax) ApplySyntax(x string) string {
 	}
 
 	// Numbers
-	HighlightRegex(x, "[-]?\\d[\\d,]*[\\.]?[\\d{2}]*", &hl, Blue)
+	if s.l.hlNumbers {
+		HighlightRegex(x, "[-]?\\d[\\d,]*[\\.]?[\\d{2}]*", &hl, Blue)
+	}
 
 	// Strings
-	// TODO: Fix Multiple strings in same line interpolating incorrectly
-	for _, b := range s.l.stringChars {
-		HighlightString(x, string(b), &hl, DarkGreen)
+
+	if s.l.hlStrings {
+		for _, b := range s.l.stringChars {
+			HighlightString(x, string(b), &hl, DarkGreen)
+		}
 	}
 
 	return ApplyColours(x, hl)
