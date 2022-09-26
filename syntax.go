@@ -12,6 +12,7 @@ import (
 type Syntax struct {
 	l     LanguageSyntax
 	cache LRUCache
+	c     ColourScheme
 }
 
 type LanguageSyntax struct {
@@ -36,6 +37,7 @@ func CreateSyntax(filename string) *Syntax {
 	return &Syntax{
 		l:     GetLanguageSyntax(filename),
 		cache: *CreateCache(100),
+		c:     GetColourScheme(),
 	}
 }
 
@@ -131,7 +133,7 @@ func (s *Syntax) ApplySyntax(x string) string {
 	for _, k := range s.l.Keywords {
 		for _, idx := range AllWordIndices(x, k) {
 			for i := 0; i < len(k); i++ {
-				hl[idx+i] = Orange
+				hl[idx+i] = s.c.Keyword
 			}
 		}
 	}
@@ -142,7 +144,7 @@ func (s *Syntax) ApplySyntax(x string) string {
 		cIdx := strings.Index(x, s.l.Comment)
 		if cIdx != -1 {
 			for i := cIdx; i < len(x); i++ {
-				hl[i] = DarkGray
+				hl[i] = s.c.Comments
 			}
 		}
 	}
@@ -151,20 +153,19 @@ func (s *Syntax) ApplySyntax(x string) string {
 	toDoIdx := strings.Index(x, s.l.Comment+" TODO")
 	if toDoIdx != -1 {
 		for i := toDoIdx + len(s.l.Comment); i < len(x); i++ {
-			hl[i] = DarkYellow
+			hl[i] = s.c.Todos
 		}
 	}
 
 	// Numbers
 	if s.l.HlNumbers {
-		HighlightRegex(x, "[-]?\\d[\\d,]*[\\.]?[\\d{2}]*", &hl, Blue)
+		HighlightRegex(x, "[-]?\\d[\\d,]*[\\.]?[\\d{2}]*", &hl, s.c.Numbers)
 	}
 
 	// Strings
-
 	if s.l.HlStrings {
 		for _, b := range s.l.StringChars {
-			HighlightString(x, string(b), &hl, DarkGreen)
+			HighlightString(x, string(b), &hl, s.c.Strings)
 		}
 	}
 

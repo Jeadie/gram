@@ -7,28 +7,6 @@ import (
 
 type Colour string
 
-// TODO: use 256 colours from https://developer-book.com/post/definitive-guide-for-colored-text-in-terminal/
-const (
-	Reset       Colour = "\033[0m"
-	Default            = "\033[39m"
-	Black              = "\033[30m"
-	Red                = "\033[91m"
-	DarkRed            = "\033[31m"
-	Green              = "\033[92m"
-	DarkGreen          = "\033[32m"
-	DarkYellow         = "\033[33m"
-	Orange             = "\033[38:5:202m" // "\033[93m"
-	Blue               = "\033[94m"
-	DarkBlue           = "\033[34m"
-	Cyan               = "\033[96m"
-	Magenta            = "\033[95m"
-	DarkMagenta        = "\033[35m"
-	DarkCyan           = "\033[36m"
-	LightGray          = "\033[37m"
-	DarkGray           = "\033[90m"
-	White              = "\033[97m"
-)
-
 var AllowedColours = map[string]Colour{"Black": Black, "Default": Default, "Red": Red, "DarkRed": DarkRed, "Green": Green, "DarkGreen": DarkGreen, "DarkYellow": DarkYellow, "Orange": Orange, "Blue": Blue, "DarkBlue": DarkBlue, "Cyan": Cyan, "Magenta": Magenta, "DarkMagenta": DarkMagenta, "DarkCyan": DarkCyan, "LightGray": LightGray, "DarkGray": DarkGray, "White": White}
 
 // Cprintf is Printf with colours. Replace any `%d` with `%Red.d` and it will be printed in Red, or
