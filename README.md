@@ -11,5 +11,7 @@ To build one yourself, visit the [tutorial](https://viewsourcecode.org/snaptoken
  - Handle Unicode and discrepancies between src and rende
  - Optional save/don't save on exit.
  - Separate colour scheme from language syntax (i.e. allow users to specify colour pallete).
+ - Replace in file
 
 ## Bugs
+  - Handle string rendering with \" being ignored
