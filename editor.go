@@ -25,14 +25,16 @@ const (
 	SHIFT_LEFT      = 1010
 
 	// Specific ANSI mappings
-	BACKSPACE  = 127
-	ENTER      = 13
-	SEARCH     = 6  // Ctrl-F on Mac OS
-	UNDO       = 26 // Ctrl-X on Mac OS
-	COPY       = 3  // Ctrl-C on Mac OS
-	PASTE      = 22 // Ctrl-V on Mac OS
-	DELETE_ROW = 4  // Ctrl-D on Mac OS
-	SAVE       = 19 // Ctrl-S on Mac OS
+	BACKSPACE     = 127
+	ENTER         = 13
+	SEARCH        = 6  // Ctrl-F on Mac OS
+	UNDO          = 26 // Ctrl-X on Mac OS
+	COPY          = 3  // Ctrl-C on Mac OS
+	PASTE         = 22 // Ctrl-V on Mac OS
+	DELETE_ROW    = 4  // Ctrl-D on Mac OS
+	SAVE          = 19 // Ctrl-S on Mac OS
+	SAVE_AND_EXIT = 17 // Ctrl-Q on Mac OS
+	EXIT          = 23 // Ctrl-W on Mac OS
 )
 
 type Editor struct {
@@ -182,8 +184,14 @@ func (e *Editor) ReadCharBlock() byte {
 func (e *Editor) KeyPress() bool {
 	x := e.ReadChar()
 	switch x {
-	case Ctrl('q'):
+
+	case SAVE_AND_EXIT:
+		e.Save()
 		return true
+
+	case EXIT:
+		return true
+
 	case '\x1b':
 		c := e.HandleEscapeCode()
 		e.HandleMoveCursor(c)
@@ -416,7 +424,6 @@ func (e *Editor) DrawStatusBar() {
 }
 
 func (e *Editor) Close() error {
-	saveErr := e.Save()
 	err := RevertTerminalMode(e.originalTermios)
 	if err != nil {
 		fmt.Println(fmt.Errorf(
@@ -424,7 +431,7 @@ func (e *Editor) Close() error {
 		).Error())
 	}
 	e.filename = ""
-	return saveErr
+	return err
 }
 
 func (e *Editor) Save() error {
