@@ -10,6 +10,7 @@ To build one yourself, visit the [tutorial](https://viewsourcecode.org/snaptoken
  - Handle TAB more graciously
  - Handle Unicode and discrepancies between src and rende
  - Replace in file
+ - Single script for download
 
 ## Bugs
   - Handle string rendering with \" being ignored
