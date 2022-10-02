@@ -8,8 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        # build and publish in parallel: linux/386, linux/amd64, linux/arm64, windows/386, windows/amd64, darwin/amd64, darwin/arm64
-        goos: [linux, windows, darwin]
+        goos: [darwin] # TODO: Add back linux, windows when we fix terminal constants.
         goarch: ["386", amd64, arm64]
         exclude:
           - goarch: "386"
@@ -27,3 +26,4 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           goos: ${{ matrix.goos }}
           goarch: ${{ matrix.goarch }}
+          compress_assets: "OFF" # Do not compress binaries
