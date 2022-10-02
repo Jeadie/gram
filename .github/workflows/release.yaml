@@ -18,10 +18,12 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           files: get-gram.sh
           gzip: false
+          allow_override: true # Update triggered release
 
   releases-matrix:
     name: Release Go Binary
     runs-on: ubuntu-latest
+    needs: upload-downloader
     strategy:
       matrix:
         goos: [darwin] # TODO: Add back linux, windows when we fix terminal constants.
