@@ -1,6 +1,5 @@
 #!/bin/bash
 
-
 ## Get GOOS and GOARCH
 case $(uname -m) in
     i386)   goarch="386" ;;
@@ -40,17 +39,15 @@ fi
 
 
 # Download and extract binary
-tar_gz_url=$(curl -s https://api.github.com/repos/jeadie/gram/releases/latest | jq -r ".assets[] | select(.name | test(\"gram-${goos}-${goarch}.tar.gz\")) | .browser_download_url" | grep -v "md5")
-wget -q $tar_gz_url -O gram.tar.gz > /dev/null
-tar -xf gram.tar.gz 
-rm gram.tar.gz
+binary_url=$(curl -s https://api.github.com/repos/jeadie/gram/releases/latest | jq -r ".assets[] | select(.name | test(\"gram-${goos}-${goarch}\")) | .browser_download_url" | grep -v "md5")
+wget -q $binary_url -O gram > /dev/null
 
 # Set gram command 
 chmod +x gram
 
 # Set gram binary to path and alias
 alias gram="$(pwd)/gram"
-echo "export PATH=$PATH:$(pwd)/gram" > ~/.bashrc
-echo "export PATH=$PATH:$(pwd)/gram" > ~/.zshrc
+echo "export PATH=\$PATH:$(pwd)/gram" >> ~/.bashrc
+echo "export PATH=\$PATH:$(pwd)/gram" >> ~/.zshrc
 
 
