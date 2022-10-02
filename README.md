@@ -16,7 +16,8 @@ wget -qO - https://raw.githubusercontent.com/Jeadie/gram/main/get-gram.sh | bash
  - Handle TAB more graciously
  - Handle Unicode and discrepancies between src and rende
  - Replace in file
- - Single script for download
+ - Improve how syntax highlighting (i.e syntaxes.json) gets bundled in downloaded binary
 
 ## Bugs
+  
   - Handle string rendering with \" being ignored
