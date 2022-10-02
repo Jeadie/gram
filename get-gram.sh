@@ -45,9 +45,6 @@ wget -q $binary_url -O gram > /dev/null
 # Set gram command 
 chmod +x gram
 
-# Set gram binary to path and alias
-alias gram="$(pwd)/gram"
-echo "export PATH=\$PATH:$(pwd)/gram" >> ~/.bashrc
-echo "export PATH=\$PATH:$(pwd)/gram" >> ~/.zshrc
-
-
+# Set gram binary to aliases
+echo "alias gram=$(pwd)/gram" >> ~/.zshrc
+echo "alias gram=$(pwd)/gram" >> ~/.bashrc
