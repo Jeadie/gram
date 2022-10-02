@@ -3,6 +3,22 @@ on:
     types: [created]
 
 jobs:
+
+  upload-downloader:
+    name: Upload download script
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: upload get-gram.sh to release
+        uses: meeDamian/github-release@2.0
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          files: get-gram.sh
+          gzip: false
+
   releases-matrix:
     name: Release Go Binary
     runs-on: ubuntu-latest
@@ -27,3 +43,4 @@ jobs:
           goos: ${{ matrix.goos }}
           goarch: ${{ matrix.goarch }}
           compress_assets: "OFF" # Do not compress binaries
+          asset_name: "gram-${{ matrix.goos }}-${{ matrix.goarch }}"
