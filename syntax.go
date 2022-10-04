@@ -70,7 +70,7 @@ func LoadSyntaxesFromFile(file string) []LanguageSyntax {
 
 // GetLanguageSyntax of file based on filename.
 func GetLanguageSyntax(filename string) LanguageSyntax {
-	syntaxes := LoadSyntaxesFromFile("syntax.json")
+    syntaxes := append(LoadSyntaxesFromFile("syntax.json"), builtinLanguageSyntaxs...)
 	for _, syntax := range syntaxes {
 		if FileHasExtension(filename, syntax.Exts) {
 			return syntax

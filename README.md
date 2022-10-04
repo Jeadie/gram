@@ -19,5 +19,5 @@ wget -qO - https://raw.githubusercontent.com/Jeadie/gram/main/get-gram.sh | bash
  - Improve how syntax highlighting (i.e syntaxes.json) gets bundled in downloaded binary
 
 ## Bugs
-  
+  - `jq` is not default installed on all boxes   
   - Handle string rendering with \" being ignored
