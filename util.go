@@ -17,14 +17,10 @@ func isControlChar(x byte) bool {
 }
 
 func RevertTerminalMode(original *unix.Termios) error {
-	return unix.IoctlSetTermios(int(os.Stdin.Fd()), unix.TIOCSETA, original)
+	return unix.IoctlSetTermios(int(os.Stdin.Fd()), ioctlWriteTermios, original)
 }
 
 func EnableRawMode() (unix.Termios, error) {
-	// TODO: these are only for Mac OS, and not other linux
-	const ioctlReadTermios = unix.TIOCGETA
-	const ioctlWriteTermios = unix.TIOCSETA
-
 	fd := int(os.Stdin.Fd())
 
 	termios, err := unix.IoctlGetTermios(fd, ioctlReadTermios)
