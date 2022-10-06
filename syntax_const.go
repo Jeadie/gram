@@ -50,6 +50,13 @@ var builtinLanguageSyntaxs = []LanguageSyntax{
 		HlNumbers:   true,
 	},
 	{
+		Exts:      []string{".xit"},
+		Keywords:  []string{"[ ]", "[x]", "[@]", "[~]"},
+		Comment:   "#", // These are technically Tags. Current Gram does not support the semantics of xit entirely.
+		HlStrings: false,
+		HlNumbers: true,
+	},
+	{
 		Exts:        []string{".sh"},
 		Keywords:    []string{"if", "fi", "elif", "case", "esac", "then"},
 		StringChars: []string{"'", "\"", "`"},
