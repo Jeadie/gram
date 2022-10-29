@@ -138,7 +138,9 @@ func (e *Editor) DrawRows() {
 		l := r.RenderWithin(e.colOffset, e.wCols-e.colOffset)
 		fmt.Printf("%s\r\n", e.syntax.Highlight(l))
 	}
-	e.DrawEmptyRows(r - nRows)
+
+	// TODO: Temporary fix to address unaddressed, overflow error.
+	e.DrawEmptyRows(Min(r-nRows, r-1))
 	e.DrawStatusBar()
 }
 

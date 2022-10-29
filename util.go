@@ -12,6 +12,14 @@ func Ctrl(b byte) byte {
 	return b & 0x1f
 }
 
+func Min(x, y uint) uint {
+	if x < y {
+		return x
+	} else {
+		return y
+	}
+}
+
 func isControlChar(x byte) bool {
 	return x <= 31 || x == 127
 }
@@ -61,7 +69,8 @@ func fileExists(filePath string) bool {
 
 // GetWindowSize returns number of rows, then columns. (0, 0) if error occurs
 // TODO: Sometimes unix.IoctlGetWinsize will fail. Implement fallback
-//   https://viewsourcecode.org/snaptoken/kilo/03.rawInputAndOutput.html#window-size-the-hard-way
+//
+//	https://viewsourcecode.org/snaptoken/kilo/03.rawInputAndOutput.html#window-size-the-hard-way
 func GetWindowSize() (uint, uint) {
 	ws, err := unix.IoctlGetWinsize(int(os.Stdin.Fd()), unix.TIOCGWINSZ)
 	if err != nil {
