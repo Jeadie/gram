@@ -16,7 +16,10 @@ wget -qO - https://raw.githubusercontent.com/Jeadie/gram/main/get-gram.sh | bash
  - Handle TAB more graciously
  - Handle Unicode and discrepancies between src and rende
  - Replace in file
+ - On line delete, copy contents to clipboard
 
 ## Bugs
   - `jq` is not default installed on all boxes   
   - Handle string rendering with \" being ignored
+  - numbers are highlighted within comments (maybe a feature?)
+  - Sometimes searching spams `SEARCH: ` repeatedly. 
