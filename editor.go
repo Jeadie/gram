@@ -200,6 +200,14 @@ func (e *Editor) KeyPress() bool {
 	case BACKSPACE:
 		if e.GetRowLength() == 0 {
 			e.RemoveCurrentRow()
+		} else if e.cx == 0 && e.cy > 0 {
+			l := e.GetCurrentRow().RenderLen()
+			e.JoinRows(e.cy-1, e.cy)
+
+			// Point cursor where it was prior.
+			e.cy--
+			e.cx = e.GetCurrentRow().RenderLen() - l
+
 		} else {
 			e.GetCurrentRow().RemoveCharAt(e.cx)
 			e.HandleMoveCursor(LEFT)
@@ -240,6 +248,7 @@ func (e *Editor) KeyPress() bool {
 	return false
 }
 
+// TODO: This does more than RemoveCurrentRow
 func (e *Editor) RemoveCurrentRow() {
 	if (e.cy+1) == e.GetDocumentRows() && e.GetDocumentRows() > 0 {
 		// Last row, just remove
@@ -468,8 +477,9 @@ func (e *Editor) HandleOtherEscapedCmds(c Cmd) {
 		} else if rowL == 1 {
 			row.RemoveCharAt(0)
 		} else if (e.cx == rowL || rowL == 0) && safeToJoinRow {
+			// TODO: need to generalise this for BACKSPACE
+			// TODO: Also is this why
 			e.JoinRows(e.cy, e.cy+1)
-			//e.RemoveCurrentRow()
 		}
 	}
 }
