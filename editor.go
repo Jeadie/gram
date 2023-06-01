@@ -2,8 +2,9 @@ package main
 
 import (
 	"fmt"
-	"golang.org/x/sys/unix"
 	"os"
+
+	"golang.org/x/sys/unix"
 )
 
 type Cmd rune
@@ -44,7 +45,7 @@ type Editor struct {
 	rows                 []Row // Rows in file
 	rowOffset, colOffset uint  // Position in file of top left corner of editor
 	filename             string
-	charHistory          ByteRing
+	charHistory          byteRing
 	cmdHistory           *CommandHistory
 	syntax               *Syntax
 	paste                string
@@ -65,7 +66,7 @@ func ConstructEditor(filename string) (Editor, error) {
 		wCols:       0,
 		filename:    filename,
 		rows:        rows,
-		charHistory: CreateByteRing(10),
+		charHistory: *NewbyteRing(10),
 		cmdHistory:  CreateCommandHistory(),
 		syntax:      CreateSyntax(filename),
 		paste:       "",
